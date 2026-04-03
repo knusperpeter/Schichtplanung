@@ -1,0 +1,48 @@
+name: Windows Installer Build
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:   # manuell auslösbar
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Code auschecken
+        uses: actions/checkout@v4
+
+      - name: Python einrichten
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Abhängigkeiten installieren
+        run: pip install PySide6 sqlalchemy ortools reportlab pyinstaller
+
+      - name: App mit PyInstaller bauen
+        run: |
+          python -m PyInstaller `
+            --windowed `
+            --name "Schichtplanung" `
+            --collect-all ortools `
+            --collect-all PySide6 `
+            --collect-all reportlab `
+            --hidden-import sqlalchemy.dialects.sqlite `
+            --noconfirm `
+            main.py
+
+      - name: Inno Setup installieren
+        run: choco install innosetup --no-progress -y
+
+      - name: Installer bauen
+        run: |
+          mkdir installer_output
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss
+
+      - name: Installer als Artefakt hochladen
+        uses: actions/upload-artifact@v4
+        with:
+          name: Schichtplanung_Setup
+          path: installer_output\Schichtplanung_Setup.exe
