@@ -137,7 +137,7 @@ class GenerateDialog(QDialog):
         self._progress_bar.setRange(0, 0)   # indeterminate
         self._progress_bar.setStyleSheet(
             "QProgressBar { border-radius: 4px; height: 10px; }"
-            "QProgressBar::chunk { background: #1A5D9E; }"
+            "QProgressBar::chunk { background: #18181B; }"
         )
         prog_layout.addWidget(self._progress_bar)
         self._progress_label = QLabel("Solver läuft…")
@@ -155,8 +155,8 @@ class GenerateDialog(QDialog):
         self._generate_btn = QPushButton("Generieren")
         self._generate_btn.setObjectName("primary")
         self._generate_btn.setStyleSheet(
-            "background: #1A5D9E; color: white; font-weight: bold;"
-            "padding: 8px 20px; border-radius: 4px; border: none;"
+            "background: #18181B; color: #FAFAFA; font-weight: 600;"
+            "padding: 8px 20px; border-radius: 6px; border: none;"
         )
         self._generate_btn.clicked.connect(self._start_generation)
         btn_row.addWidget(self._generate_btn)

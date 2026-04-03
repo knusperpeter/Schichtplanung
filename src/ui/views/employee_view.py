@@ -102,25 +102,26 @@ class EmployeeView(QWidget):
         self._list = QListWidget()
         self._list.setMaximumWidth(300)
         self._list.setStyleSheet(
-            "QListWidget { border: 1px solid #CBD5E1; border-radius: 4px; }"
-            "QListWidget::item { padding: 6px 10px; }"
-            "QListWidget::item:selected { background: #2563EB; color: #FFFFFF; }"
+            "QListWidget { border: 1px solid #E4E4E7; border-radius: 6px; }"
+            "QListWidget::item { padding: 7px 10px; }"
+            "QListWidget::item:selected { background: #18181B; color: #FAFAFA; }"
+            "QListWidget::item:hover:!selected { background: #F4F4F5; }"
         )
         self._list.currentRowChanged.connect(self._on_employee_selected)
         ll.addWidget(self._list)
 
         new_btn = QPushButton("＋  Neuer Mitarbeiter")
         new_btn.setStyleSheet(
-            "background: #2563EB; color: white; font-weight: bold;"
-            "border: none; border-radius: 5px; padding: 7px 10px;"
+            "background: #18181B; color: #FAFAFA; font-weight: 600;"
+            "border: none; border-radius: 6px; padding: 7px 10px;"
         )
         new_btn.clicked.connect(self._open_new_employee_dialog)
         ll.addWidget(new_btn)
 
         self._delete_emp_btn = QPushButton("✕  Mitarbeiter löschen")
         self._delete_emp_btn.setStyleSheet(
-            "background: #991B1B; color: white; font-weight: bold;"
-            "border: none; border-radius: 5px; padding: 7px 10px;"
+            "background: #B91C1C; color: #FAFAFA; font-weight: 600;"
+            "border: none; border-radius: 6px; padding: 7px 10px;"
         )
         self._delete_emp_btn.clicked.connect(self._delete_current_employee)
         ll.addWidget(self._delete_emp_btn)
@@ -136,7 +137,7 @@ class EmployeeView(QWidget):
         # Info-Box
         self._info_frame = QFrame()
         self._info_frame.setStyleSheet(
-            "QFrame { border: 1px solid #CBD5E1; border-radius: 6px; padding: 4px; }"
+            "QFrame { border: 1px solid #E4E4E7; border-radius: 8px; padding: 4px; }"
             "QLabel { background: transparent; border: none; }"
         )
         info_layout = QFormLayout(self._info_frame)
@@ -187,7 +188,9 @@ class EmployeeView(QWidget):
         self._rules_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self._rules_table.setSelectionMode(QTableWidget.SelectionMode.NoSelection)
         self._rules_table.verticalHeader().setVisible(False)
-        self._rules_table.setStyleSheet("QTableWidget { border: 1px solid #CBD5E1; font-size: 11px; }")
+        self._rules_table.setShowGrid(False)
+        self._rules_table.verticalHeader().setDefaultSectionSize(40)
+        self._rules_table.verticalHeader().setMinimumSectionSize(40)
         self._rules_table.setColumnHidden(4, True)
         rl.addWidget(self._rules_table, 1)
 
@@ -204,7 +207,7 @@ class EmployeeView(QWidget):
         """Erstellt das Formular zum Hinzufügen einer neuen Regel."""
         frame = QFrame()
         frame.setStyleSheet(
-            "QFrame { border: 1px solid #CBD5E1; border-radius: 6px; }"
+            "QFrame { border: 1px solid #E4E4E7; border-radius: 8px; }"
             "QLabel { background: transparent; border: none; }"
         )
         layout = QVBoxLayout(frame)
@@ -272,8 +275,8 @@ class EmployeeView(QWidget):
 
         add_btn = QPushButton("＋  Hinzufügen")
         add_btn.setStyleSheet(
-            "background: #27AE60; color: white; font-weight: bold;"
-            "padding: 5px 14px; border-radius: 4px; border: none;"
+            "background: #18181B; color: #FAFAFA; font-weight: 600;"
+            "padding: 5px 14px; border-radius: 6px; border: none;"
         )
         add_btn.clicked.connect(self._add_rule)
         row3.addWidget(add_btn)
@@ -371,13 +374,18 @@ class EmployeeView(QWidget):
             # Löschen-Button (Spalte 4, nur in Edit-Modus sichtbar)
             del_btn = QPushButton("✕ Entfernen")
             del_btn.setStyleSheet(
-                "QPushButton { background: #991B1B; color: white; border: none;"
-                " border-radius: 3px; font-size: 10px; padding: 3px 6px; }"
-                "QPushButton:hover { background: #7F1111; }"
+                "QPushButton { background: #B91C1C; color: #FAFAFA; border: none;"
+                " border-radius: 0px; font-size: 12px; padding: 0; margin: 0; }"
+                "QPushButton:hover { background: #991B1B; }"
             )
             rule_id = rule.id
             del_btn.clicked.connect(lambda _checked, rid=rule_id: self._delete_rule(rid))
-            self._rules_table.setCellWidget(row, 4, del_btn)
+            cell = QWidget()
+            cell_layout = QHBoxLayout(cell)
+            cell_layout.setContentsMargins(0, 0, 0, 0)
+            cell_layout.setSpacing(0)
+            cell_layout.addWidget(del_btn)
+            self._rules_table.setCellWidget(row, 4, cell)
 
     # ------------------------------------------------------------------
     # Edit-Modus
@@ -393,8 +401,8 @@ class EmployeeView(QWidget):
         if active:
             self._edit_btn.setText("✓  Fertig")
             self._edit_btn.setStyleSheet(
-                "background: #27AE60; color: white; font-weight: bold;"
-                "border: none; border-radius: 4px; padding: 5px 10px;"
+                "background: #15803D; color: #FAFAFA; font-weight: 600;"
+                "border: none; border-radius: 6px; padding: 5px 10px;"
             )
         else:
             self._edit_btn.setText("✏  Bearbeiten")

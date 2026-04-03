@@ -58,8 +58,30 @@ class MainWindow(QMainWindow):
 
         # Tabs
         self._tabs = QTabWidget()
-        self._tabs.setDocumentMode(True)
+        self._tabs.setDocumentMode(False)
         self._tabs.setTabPosition(QTabWidget.TabPosition.North)
+        # TabsList-Hintergrund: muted #F4F4F5 wie shadcn TabsList bg-muted
+        self._tabs.tabBar().setStyleSheet(
+            "QTabBar { background: #F4F4F5; border-radius: 8px; padding: 3px; }"
+            "QTabBar::tab { min-width: 130px; padding: 6px 20px; font-size: 13px;"
+            "  font-weight: 500; color: #71717A; background: transparent;"
+            "  border: 1px solid transparent; border-radius: 6px; margin: 2px 1px; }"
+            "QTabBar::tab:hover:!selected { color: #3F3F46;"
+            "  background: rgba(255,255,255,0.8); border-color: #E4E4E7; }"
+            "QTabBar::tab:selected { color: #09090B; background: #FFFFFF;"
+            "  font-weight: 600; border: 1px solid #E4E4E7; }"
+        )
+        self._tabs_dark_bar_style = (
+            "QTabBar { background: #27272A; border-radius: 8px; padding: 3px; }"
+            "QTabBar::tab { min-width: 130px; padding: 6px 20px; font-size: 13px;"
+            "  font-weight: 500; color: #A1A1AA; background: transparent;"
+            "  border: 1px solid transparent; border-radius: 6px; margin: 2px 1px; }"
+            "QTabBar::tab:hover:!selected { color: #D4D4D8;"
+            "  background: rgba(255,255,255,0.06); border-color: #3F3F46; }"
+            "QTabBar::tab:selected { color: #FAFAFA; background: #3F3F46;"
+            "  font-weight: 600; border: 1px solid #52525B; }"
+        )
+        self._tabs_light_bar_style = self._tabs.tabBar().styleSheet()
 
         # Tab 1: Plan
         self._plan_view = PlanView()
@@ -138,6 +160,9 @@ class MainWindow(QMainWindow):
         self._dark_mode = not self._dark_mode
         QApplication.instance().setStyleSheet(
             DARK_STYLESHEET if self._dark_mode else APP_STYLESHEET
+        )
+        self._tabs.tabBar().setStyleSheet(
+            self._tabs_dark_bar_style if self._dark_mode else self._tabs_light_bar_style
         )
         self._dark_btn.setText("☀️  Hell" if self._dark_mode else "🌙  Dark")
         self._val_bar.set_dark_mode(self._dark_mode)

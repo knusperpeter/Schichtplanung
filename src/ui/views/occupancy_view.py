@@ -106,7 +106,10 @@ class OccupancyView(QWidget):
         self._table.verticalHeader().setVisible(False)
         self._table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self._table.setSelectionMode(QTableWidget.SelectionMode.NoSelection)
-        self._table.setStyleSheet("QTableWidget { border: 1px solid #CBD5E1; }")
+        self._table.setShowGrid(False)
+        self._table.setTabKeyNavigation(False)
+        self._table.verticalHeader().setDefaultSectionSize(40)
+        self._table.verticalHeader().setMinimumSectionSize(40)
         root.addWidget(self._table, 1)
 
         # Speichern-Button
@@ -114,8 +117,8 @@ class OccupancyView(QWidget):
         btn_row.addStretch()
         self._save_btn = QPushButton("Belegung speichern")
         self._save_btn.setStyleSheet(
-            "background: #166534; color: white; font-weight: bold;"
-            "padding: 8px 20px; border-radius: 4px; border: none;"
+            "background: #18181B; color: #FAFAFA; font-weight: 600;"
+            "padding: 8px 20px; border-radius: 6px; border: none;"
         )
         self._save_btn.clicked.connect(self._save)
         btn_row.addWidget(self._save_btn)
@@ -141,6 +144,13 @@ class OccupancyView(QWidget):
             co.valueChanged.connect(self._recalculate)
             self._table.setCellWidget(row, 3, co)
             self._co_spins.append(co)
+
+        # Tab-Reihenfolge: ci[0] → co[0] → ci[1] → co[1] → … → ci[13] → co[13]
+        all_spins = []
+        for ci, co in zip(self._ci_spins, self._co_spins):
+            all_spins += [ci, co]
+        for a, b in zip(all_spins, all_spins[1:]):
+            QWidget.setTabOrder(a, b)
 
     # ------------------------------------------------------------------
     # Datenladen

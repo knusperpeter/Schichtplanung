@@ -53,10 +53,10 @@ def _rule_covers(rule, day: date, shift_type: str) -> bool:
     return True
 
 # Header-Farben für Tagesspalten
-_HDR_WEEKDAY_BG = QColor("#1E293B")
-_HDR_WEEKDAY_FG = QColor("#FFFFFF")
-_HDR_WEEKEND_BG = QColor("#FEF3C7")
-_HDR_WEEKEND_FG = QColor("#92400E")
+_HDR_WEEKDAY_BG = QColor("#18181B")   # zinc-900
+_HDR_WEEKDAY_FG = QColor("#F4F4F5")   # zinc-100
+_HDR_WEEKEND_BG = QColor("#FEF9C3")   # yellow-100
+_HDR_WEEKEND_FG = QColor("#92400E")   # amber-800
 
 WEEKEND_BG = QColor("#FFFBF0")
 
@@ -105,7 +105,7 @@ class _DayHeaderView(QHeaderView):
         painter.fillRect(rect, _HDR_WEEKEND_BG if is_weekend else _HDR_WEEKDAY_BG)
 
         # Trennlinie rechts
-        painter.setPen(QPen(QColor("#334155"), 1))
+        painter.setPen(QPen(QColor("#3F3F46"), 1))
         painter.drawLine(rect.right(), rect.top(), rect.right(), rect.bottom())
 
         # Wochentag + Datum (obere Hälfte)
@@ -188,10 +188,10 @@ class PlanView(QWidget):
         toolbar.setSpacing(8)
 
         _nav_style = (
-            "QPushButton { background: #1E293B; color: #FFFFFF; font-weight: bold;"
-            " font-size: 16px; border: none; border-radius: 4px; }"
-            "QPushButton:hover { background: #334155; }"
-            "QPushButton:disabled { background: #CBD5E1; color: #94A3B8; }"
+            "QPushButton { background: #18181B; color: #F4F4F5; font-weight: bold;"
+            " font-size: 16px; border: none; border-radius: 6px; }"
+            "QPushButton:hover { background: #27272A; }"
+            "QPushButton:disabled { background: #E4E4E7; color: #A1A1AA; }"
         )
         self._prev_btn = QPushButton("<")
         self._prev_btn.setMinimumSize(48, 36)
@@ -215,8 +215,8 @@ class PlanView(QWidget):
         self._gen_btn = QPushButton("  Plan generieren  ")
         self._gen_btn.setObjectName("primary")
         self._gen_btn.setStyleSheet(
-            "background: #1A5D9E; color: white; font-weight: bold;"
-            "padding: 6px 14px; border-radius: 4px; border: none; font-size: 12px;"
+            "background: #18181B; color: #FAFAFA; font-weight: 600;"
+            "padding: 6px 14px; border-radius: 6px; border: none; font-size: 12px;"
         )
         self._gen_btn.clicked.connect(self._open_generate_dialog)
         toolbar.addWidget(self._gen_btn)
@@ -254,15 +254,15 @@ class PlanView(QWidget):
         self._table.setShowGrid(True)
         self._table.setAlternatingRowColors(False)
         self._table.setStyleSheet(
-            "QTableWidget { border: 1px solid #DDD; }"
-            "QTableWidget::item { padding: 0; }"
+            "QTableWidget { border: none; gridline-color: #E4E4E7; }"
+            "QTableWidget::item { padding: 0; border: none; }"
         )
         root.addWidget(self._table, 1)
 
         # --- Footer: Stundenübersicht ---
         self._footer = QLabel("–")
         self._footer.setStyleSheet(
-            "padding: 6px 10px; font-size: 11px; border-top: 1px solid #CBD5E1;"
+            "padding: 6px 10px; font-size: 11px; border-top: 1px solid #E4E4E7;"
         )
         self._footer.setWordWrap(True)
         root.addWidget(self._footer)
