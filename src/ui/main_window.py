@@ -20,13 +20,15 @@ from datetime import date
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QMainWindow, QTabWidget, QWidget, QVBoxLayout,
-    QMenuBar, QMenu, QMessageBox, QFileDialog, QStatusBar,
+    QMenuBar, QMenu, QMessageBox, QFileDialog, QStatusBar, QPushButton,
+    QApplication,
 )
 
 from src.ui.views.plan_view import PlanView
 from src.ui.views.occupancy_view import OccupancyView
 from src.ui.views.employee_view import EmployeeView
 from src.ui.widgets.validation_bar import ValidationBar
+from src.ui.styles import APP_STYLESHEET, DARK_STYLESHEET
 
 
 class MainWindow(QMainWindow):
@@ -39,6 +41,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle(self.APP_TITLE)
         self.resize(1280, 780)
         self.setMinimumSize(900, 600)
+        self._dark_mode = False
         self._setup_ui()
         self._setup_menu()
 
@@ -69,6 +72,15 @@ class MainWindow(QMainWindow):
         # Tab 3: Mitarbeiter
         self._emp_view = EmployeeView()
         self._tabs.addTab(self._emp_view, "👥  Mitarbeiter")
+
+        # Dark-Mode-Button in der Tab-Ecke
+        self._dark_btn = QPushButton("🌙  Dark")
+        self._dark_btn.setFixedHeight(28)
+        self._dark_btn.setStyleSheet(
+            "QPushButton { font-size: 11px; padding: 2px 10px; border-radius: 4px; }"
+        )
+        self._dark_btn.clicked.connect(self._toggle_dark_mode)
+        self._tabs.setCornerWidget(self._dark_btn, Qt.Corner.TopRightCorner)
 
         root.addWidget(self._tabs, 1)
 
@@ -121,6 +133,14 @@ class MainWindow(QMainWindow):
     # ------------------------------------------------------------------
     # Slot-Handler
     # ------------------------------------------------------------------
+
+    def _toggle_dark_mode(self) -> None:
+        self._dark_mode = not self._dark_mode
+        QApplication.instance().setStyleSheet(
+            DARK_STYLESHEET if self._dark_mode else APP_STYLESHEET
+        )
+        self._dark_btn.setText("☀️  Hell" if self._dark_mode else "🌙  Dark")
+        self._val_bar.set_dark_mode(self._dark_mode)
 
     def _on_violations_changed(self, violations: list[str], warnings: list[str]) -> None:
         self._val_bar.show_violations(violations, warnings)

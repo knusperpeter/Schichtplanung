@@ -9,7 +9,6 @@ Zeigt:
 Klick auf die Leiste klappt eine Detailansicht aus.
 """
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
     QWidget, QHBoxLayout, QVBoxLayout, QLabel, QPushButton,
     QFrame, QScrollArea,
@@ -25,8 +24,24 @@ class ValidationBar(QWidget):
         self._violations: list[str] = []
         self._warnings: list[str] = []
         self._detail_visible = False
+        self._dark_mode = False
         self._setup_ui()
         self.show_ok()
+
+    def set_dark_mode(self, dark: bool) -> None:
+        self._dark_mode = dark
+        self._detail_frame.setStyleSheet(
+            "background: #1E293B; border-top: 1px solid #334155;"
+            if dark else
+            "background: #FAFAFA; border-top: 1px solid #CBD5E1;"
+        )
+        self._detail_content.setStyleSheet(
+            "font-size: 11px; color: #F1F5F9; line-height: 1.6;"
+            if dark else
+            "font-size: 11px; color: #1E293B; line-height: 1.6;"
+        )
+        if self._violations or self._warnings:
+            self._rebuild_detail()
 
     # ------------------------------------------------------------------
     # Öffentliche API
@@ -100,22 +115,32 @@ class ValidationBar(QWidget):
 
         outer.addWidget(self._detail_frame)
 
+    def _rebuild_detail(self) -> None:
+        """HTML-Detail mit theme-passenden Farben neu aufbauen."""
+        if self._dark_mode:
+            viol_color = "#FCA5A5"
+            warn_color = "#FCD34D"
+        else:
+            viol_color = "#991B1B"
+            warn_color = "#92400E"
+
+        parts = [
+            f'<span style="color:{viol_color}; font-weight:600;">✕ {v}</span>'
+            for v in self._violations
+        ]
+        parts += [
+            f'<span style="color:{warn_color}; font-weight:600;">⚠ {w}</span>'
+            for w in self._warnings
+        ]
+        self._detail_content.setText("<br>".join(parts))
+
     def _update_bar(self, color: str, message: str) -> None:
         self._bar.setStyleSheet(f"background-color: {color};")
         self._status_label.setText(message)
         all_msgs = self._violations + self._warnings
         self._toggle_btn.setVisible(bool(all_msgs))
         if all_msgs:
-            html = "<br>".join(
-                f'<span style="color:#991B1B; font-weight:600;">✕ {v}</span>'
-                for v in self._violations
-            ) + (
-                "<br>" + "<br>".join(
-                    f'<span style="color:#92400E; font-weight:600;">⚠ {w}</span>'
-                    for w in self._warnings
-                ) if self._warnings else ""
-            )
-            self._detail_content.setText(html)
+            self._rebuild_detail()
         else:
             self._detail_visible = False
             self._detail_frame.setVisible(False)

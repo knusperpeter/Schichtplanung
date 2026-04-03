@@ -89,7 +89,7 @@ class EmployeeView(QWidget):
         root.setSpacing(10)
 
         title = QLabel("Mitarbeiter")
-        title.setStyleSheet("font-size: 16px; font-weight: bold; color: #2C3E50;")
+        title.setStyleSheet("font-size: 16px; font-weight: bold;")
         root.addWidget(title)
 
         splitter = QSplitter(Qt.Orientation.Horizontal)
@@ -102,9 +102,9 @@ class EmployeeView(QWidget):
         self._list = QListWidget()
         self._list.setMaximumWidth(300)
         self._list.setStyleSheet(
-            "QListWidget { border: 1px solid #DDD; border-radius: 4px; background: #FFFFFF; }"
-            "QListWidget::item { padding: 6px 10px; color: #1E293B; }"
-            "QListWidget::item:selected { background: #DBEAFE; color: #1E293B; }"
+            "QListWidget { border: 1px solid #CBD5E1; border-radius: 4px; }"
+            "QListWidget::item { padding: 6px 10px; }"
+            "QListWidget::item:selected { background: #2563EB; color: #FFFFFF; }"
         )
         self._list.currentRowChanged.connect(self._on_employee_selected)
         ll.addWidget(self._list)
@@ -136,9 +136,8 @@ class EmployeeView(QWidget):
         # Info-Box
         self._info_frame = QFrame()
         self._info_frame.setStyleSheet(
-            "QFrame { background: #EBF5FB; border: 1px solid #AED6F1; "
-            "border-radius: 6px; padding: 4px; }"
-            "QLabel { color: #1E293B; background: transparent; border: none; }"
+            "QFrame { border: 1px solid #CBD5E1; border-radius: 6px; padding: 4px; }"
+            "QLabel { background: transparent; border: none; }"
         )
         info_layout = QFormLayout(self._info_frame)
         info_layout.setLabelAlignment(Qt.AlignmentFlag.AlignRight)
@@ -153,7 +152,7 @@ class EmployeeView(QWidget):
 
         for lbl in (self._name_lbl, self._skill_lbl, self._contract_lbl,
                     self._hours_lbl, self._special_lbl):
-            lbl.setStyleSheet("font-size: 12px; color: #2C3E50;")
+            lbl.setStyleSheet("font-size: 12px;")
 
         info_layout.addRow("Name:",          self._name_lbl)
         info_layout.addRow("Skill-Level:",   self._skill_lbl)
@@ -165,7 +164,7 @@ class EmployeeView(QWidget):
         # Überschrift Regeln + Bearbeiten-Button
         rules_header = QHBoxLayout()
         rules_lbl = QLabel("Verfügbarkeitsregeln")
-        rules_lbl.setStyleSheet("font-weight: bold; color: #2C3E50; font-size: 13px;")
+        rules_lbl.setStyleSheet("font-weight: bold; font-size: 13px;")
         rules_header.addWidget(rules_lbl)
         rules_header.addStretch()
         self._edit_btn = QPushButton("✏  Bearbeiten")
@@ -188,10 +187,7 @@ class EmployeeView(QWidget):
         self._rules_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self._rules_table.setSelectionMode(QTableWidget.SelectionMode.NoSelection)
         self._rules_table.verticalHeader().setVisible(False)
-        self._rules_table.setStyleSheet(
-            "QTableWidget { border: 1px solid #DDD; font-size: 11px; color: #1E293B; background: #FFFFFF; }"
-            "QTableWidget::item { color: #1E293B; }"
-        )
+        self._rules_table.setStyleSheet("QTableWidget { border: 1px solid #CBD5E1; font-size: 11px; }")
         self._rules_table.setColumnHidden(4, True)
         rl.addWidget(self._rules_table, 1)
 
@@ -208,9 +204,8 @@ class EmployeeView(QWidget):
         """Erstellt das Formular zum Hinzufügen einer neuen Regel."""
         frame = QFrame()
         frame.setStyleSheet(
-            "QFrame { background: #F8F9FA; border: 1px solid #DEE2E6; "
-            "border-radius: 6px; }"
-            "QLabel { color: #1E293B; background: transparent; border: none; }"
+            "QFrame { border: 1px solid #CBD5E1; border-radius: 6px; }"
+            "QLabel { background: transparent; border: none; }"
         )
         layout = QVBoxLayout(frame)
         layout.setContentsMargins(12, 10, 12, 10)

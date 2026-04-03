@@ -86,7 +86,7 @@ class GenerateDialog(QDialog):
 
         # Titel
         title = QLabel("Neuen Schichtplan erstellen")
-        title.setStyleSheet("font-size: 16px; font-weight: bold; color: #2C3E50;")
+        title.setStyleSheet("font-size: 16px; font-weight: bold;")
         layout.addWidget(title)
 
         sep = QFrame()
@@ -109,19 +109,19 @@ class GenerateDialog(QDialog):
 
         # Perioden-Info
         self._period_info = QLabel()
-        self._period_info.setStyleSheet("color: #555; font-size: 12px;")
+        self._period_info.setStyleSheet("font-size: 12px;")
         layout.addWidget(self._period_info)
 
         # Belegungsstatus
         self._occ_frame = QFrame()
         self._occ_frame.setStyleSheet(
-            "background: #F8F9FA; border: 1px solid #E0E0E0; border-radius: 4px; padding: 4px;"
+            "border: 1px solid #CBD5E1; border-radius: 4px; padding: 4px;"
         )
         occ_layout = QVBoxLayout(self._occ_frame)
         occ_layout.setContentsMargins(10, 8, 10, 8)
         occ_layout.setSpacing(3)
         self._occ_title = QLabel("Belegungsdaten")
-        self._occ_title.setStyleSheet("font-weight: bold; color: #2C3E50; font-size: 12px;")
+        self._occ_title.setStyleSheet("font-weight: bold; font-size: 12px;")
         occ_layout.addWidget(self._occ_title)
         self._occ_status = QLabel()
         self._occ_status.setStyleSheet("font-size: 11px;")
@@ -141,7 +141,7 @@ class GenerateDialog(QDialog):
         )
         prog_layout.addWidget(self._progress_bar)
         self._progress_label = QLabel("Solver läuft…")
-        self._progress_label.setStyleSheet("color: #666; font-size: 11px;")
+        self._progress_label.setStyleSheet("font-size: 11px;")
         prog_layout.addWidget(self._progress_label)
         self._progress_frame.setVisible(False)
         layout.addWidget(self._progress_frame)

@@ -187,18 +187,26 @@ class PlanView(QWidget):
         toolbar = QHBoxLayout()
         toolbar.setSpacing(8)
 
-        self._prev_btn = QPushButton("◀")
-        self._prev_btn.setFixedWidth(32)
+        _nav_style = (
+            "QPushButton { background: #1E293B; color: #FFFFFF; font-weight: bold;"
+            " font-size: 16px; border: none; border-radius: 4px; }"
+            "QPushButton:hover { background: #334155; }"
+            "QPushButton:disabled { background: #CBD5E1; color: #94A3B8; }"
+        )
+        self._prev_btn = QPushButton("<")
+        self._prev_btn.setMinimumSize(48, 36)
+        self._prev_btn.setStyleSheet(_nav_style)
         self._prev_btn.clicked.connect(self._go_prev)
         toolbar.addWidget(self._prev_btn)
 
         self._period_label = QLabel("Keine Periode geladen")
-        self._period_label.setStyleSheet("font-weight: bold; font-size: 13px; color: #2C3E50;")
+        self._period_label.setStyleSheet("font-weight: bold; font-size: 13px;")
         self._period_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         toolbar.addWidget(self._period_label, 1)
 
-        self._next_btn = QPushButton("▶")
-        self._next_btn.setFixedWidth(32)
+        self._next_btn = QPushButton(">")
+        self._next_btn.setMinimumSize(48, 36)
+        self._next_btn.setStyleSheet(_nav_style)
         self._next_btn.clicked.connect(self._go_next)
         toolbar.addWidget(self._next_btn)
 
@@ -226,7 +234,7 @@ class PlanView(QWidget):
             legend.addWidget(dot)
         legend.addStretch()
         manual_hint = QLabel("* = manuell geändert")
-        manual_hint.setStyleSheet("color: #475569; font-size: 10px; font-style: italic;")
+        manual_hint.setStyleSheet("font-size: 10px; font-style: italic;")
         legend.addWidget(manual_hint)
         root.addLayout(legend)
 
@@ -254,8 +262,7 @@ class PlanView(QWidget):
         # --- Footer: Stundenübersicht ---
         self._footer = QLabel("–")
         self._footer.setStyleSheet(
-            "background: #F0F4F8; padding: 6px 10px; "
-            "font-size: 11px; color: #555; border-top: 1px solid #DDD;"
+            "padding: 6px 10px; font-size: 11px; border-top: 1px solid #CBD5E1;"
         )
         self._footer.setWordWrap(True)
         root.addWidget(self._footer)
@@ -489,7 +496,8 @@ class PlanView(QWidget):
         parts = []
         for e in employees:
             n = shifts_per_emp.get(e.id, 0)
-            parts.append(f"{e.name}: {n}×  ({n * 8.5:.0f}h)")
+            weekly_h = n * 8.5 / 2
+            parts.append(f"{e.name}: {weekly_h:.1f}h/Woche")
         self._footer.setText("  ·  ".join(parts))
 
     # ------------------------------------------------------------------

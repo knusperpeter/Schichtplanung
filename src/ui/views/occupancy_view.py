@@ -58,7 +58,7 @@ class OccupancyView(QWidget):
         # Titel + Hilfe
         title = QLabel("Hotelbelegung eingeben")
         title.setObjectName("section-title")
-        title.setStyleSheet("font-size: 16px; font-weight: bold; color: #1E293B;")
+        title.setStyleSheet("font-size: 16px; font-weight: bold;")
         root.addWidget(title)
 
         hint = QLabel(
@@ -67,14 +67,12 @@ class OccupancyView(QWidget):
         )
         hint.setObjectName("info")
         hint.setWordWrap(True)
-        hint.setStyleSheet("color: #1E293B; font-size: 12px;")
+        hint.setStyleSheet("font-size: 12px;")
         root.addWidget(hint)
 
         # Startdatum
         date_row = QHBoxLayout()
-        lbl_start = QLabel("Periodenstart:")
-        lbl_start.setStyleSheet("color: #1E293B;")
-        date_row.addWidget(lbl_start)
+        date_row.addWidget(QLabel("Periodenstart:"))
         self._date_edit = QDateEdit()
         self._date_edit.setCalendarPopup(True)
         self._date_edit.setDisplayFormat("dd.MM.yyyy")
@@ -82,9 +80,7 @@ class OccupancyView(QWidget):
         self._date_edit.setDate(QDate(today.year, today.month, today.day))
         date_row.addWidget(self._date_edit)
 
-        lbl_prev = QLabel("  Vorherige Belegung:")
-        lbl_prev.setStyleSheet("color: #1E293B;")
-        date_row.addWidget(lbl_prev)
+        date_row.addWidget(QLabel("  Vorherige Belegung:"))
         self._prev_spin = _AutoSelectSpinBox()
         self._prev_spin.setRange(0, 500)
         self._prev_spin.setValue(0)
@@ -110,10 +106,7 @@ class OccupancyView(QWidget):
         self._table.verticalHeader().setVisible(False)
         self._table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self._table.setSelectionMode(QTableWidget.SelectionMode.NoSelection)
-        self._table.setStyleSheet(
-            "QTableWidget { border: 1px solid #DDD; color: #1E293B; background: #FFFFFF; }"
-            "QTableWidget::item { color: #1E293B; }"
-        )
+        self._table.setStyleSheet("QTableWidget { border: 1px solid #CBD5E1; }")
         root.addWidget(self._table, 1)
 
         # Speichern-Button
