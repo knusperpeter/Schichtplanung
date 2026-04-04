@@ -78,6 +78,7 @@ class EmployeeView(QWidget):
         self._employees: list = []
         self._edit_mode = False
         self._editing_rule_id: int | None = None
+        self._profile_edit_mode = False
         self._setup_ui()
         self.refresh()
 
@@ -91,7 +92,7 @@ class EmployeeView(QWidget):
         root.setSpacing(10)
 
         title = QLabel("Mitarbeiter")
-        title.setStyleSheet("font-size: 16px; font-weight: bold;")
+        title.setObjectName("section-title")
         root.addWidget(title)
 
         splitter = QSplitter(Qt.Orientation.Horizontal)
@@ -103,28 +104,16 @@ class EmployeeView(QWidget):
         ll.addWidget(QLabel("Mitarbeiter"))
         self._list = QListWidget()
         self._list.setMaximumWidth(300)
-        self._list.setStyleSheet(
-            "QListWidget { border: 1px solid #E4E4E7; border-radius: 6px; }"
-            "QListWidget::item { padding: 7px 10px; }"
-            "QListWidget::item:selected { background: #18181B; color: #FAFAFA; }"
-            "QListWidget::item:hover:!selected { background: #F4F4F5; }"
-        )
         self._list.currentRowChanged.connect(self._on_employee_selected)
         ll.addWidget(self._list)
 
         new_btn = QPushButton("＋  Neuer Mitarbeiter")
-        new_btn.setStyleSheet(
-            "background: #18181B; color: #FAFAFA; font-weight: 600;"
-            "border: none; border-radius: 6px; padding: 7px 10px;"
-        )
+        new_btn.setObjectName("primary")
         new_btn.clicked.connect(self._open_new_employee_dialog)
         ll.addWidget(new_btn)
 
         self._delete_emp_btn = QPushButton("✕  Mitarbeiter löschen")
-        self._delete_emp_btn.setStyleSheet(
-            "background: #B91C1C; color: #FAFAFA; font-weight: 600;"
-            "border: none; border-radius: 6px; padding: 7px 10px;"
-        )
+        self._delete_emp_btn.setObjectName("destructive")
         self._delete_emp_btn.clicked.connect(self._delete_current_employee)
         ll.addWidget(self._delete_emp_btn)
 
@@ -136,12 +125,21 @@ class EmployeeView(QWidget):
         rl.setContentsMargins(12, 0, 0, 0)
         rl.setSpacing(10)
 
-        # Info-Box
+        # Profil-Header
+        profile_header = QHBoxLayout()
+        profile_lbl = QLabel("Mitarbeiterprofil")
+        profile_lbl.setObjectName("section-title")
+        profile_header.addWidget(profile_lbl)
+        profile_header.addStretch()
+        self._profile_edit_btn = QPushButton("✏  Bearbeiten")
+        self._profile_edit_btn.setFixedWidth(150)
+        self._profile_edit_btn.clicked.connect(self._toggle_profile_edit)
+        profile_header.addWidget(self._profile_edit_btn)
+        rl.addLayout(profile_header)
+
+        # Info-Box (Anzeigemodus)
         self._info_frame = QFrame()
-        self._info_frame.setStyleSheet(
-            "QFrame { border: 1px solid #E4E4E7; border-radius: 8px; padding: 4px; }"
-            "QLabel { background: transparent; border: none; }"
-        )
+        self._info_frame.setObjectName("card")
         info_layout = QFormLayout(self._info_frame)
         info_layout.setLabelAlignment(Qt.AlignmentFlag.AlignRight)
         info_layout.setContentsMargins(12, 10, 12, 10)
@@ -155,19 +153,73 @@ class EmployeeView(QWidget):
 
         for lbl in (self._name_lbl, self._skill_lbl, self._contract_lbl,
                     self._hours_lbl, self._special_lbl):
-            lbl.setStyleSheet("font-size: 12px;")
+            lbl.setObjectName("info")
 
-        info_layout.addRow("Name:",          self._name_lbl)
-        info_layout.addRow("Skill-Level:",   self._skill_lbl)
-        info_layout.addRow("Vertragsart:",   self._contract_lbl)
+        info_layout.addRow("Name:",           self._name_lbl)
+        info_layout.addRow("Skill-Level:",    self._skill_lbl)
+        info_layout.addRow("Vertragsart:",    self._contract_lbl)
         info_layout.addRow("Ziel h/Monat:",  self._hours_lbl)
         info_layout.addRow("Besonderheiten:", self._special_lbl)
         rl.addWidget(self._info_frame)
 
+        # Info-Box (Bearbeitungsmodus, zunächst versteckt)
+        self._info_edit_frame = QFrame()
+        self._info_edit_frame.setObjectName("card")
+        self._info_edit_frame.setVisible(False)
+        edit_outer = QVBoxLayout(self._info_edit_frame)
+        edit_outer.setContentsMargins(12, 10, 12, 10)
+        edit_outer.setSpacing(8)
+
+        edit_form = QFormLayout()
+        edit_form.setLabelAlignment(Qt.AlignmentFlag.AlignRight)
+        edit_form.setSpacing(6)
+
+        self._edit_name = QLineEdit()
+        edit_form.addRow("Name *:", self._edit_name)
+
+        self._edit_skill = QComboBox()
+        for key, label in SKILL_LABEL.items():
+            self._edit_skill.addItem(label, key)
+        edit_form.addRow("Skill-Level *:", self._edit_skill)
+
+        self._edit_contract = QComboBox()
+        for key, label in CONTRACT_LABEL.items():
+            self._edit_contract.addItem(label, key)
+        edit_form.addRow("Vertragsart *:", self._edit_contract)
+
+        self._edit_hours = QDoubleSpinBox()
+        self._edit_hours.setRange(0, 250)
+        self._edit_hours.setDecimals(1)
+        self._edit_hours.setSuffix(" h")
+        edit_form.addRow("Ziel h/Monat:", self._edit_hours)
+
+        self._edit_prefers_between = QCheckBox("Bevorzugt Zwischenschicht")
+        edit_form.addRow("", self._edit_prefers_between)
+
+        self._edit_max_late = QSpinBox()
+        self._edit_max_late.setRange(0, 7)
+        self._edit_max_late.setSpecialValueText("–  (kein Limit)")
+        edit_form.addRow("Max Spät/Woche:", self._edit_max_late)
+
+        edit_outer.addLayout(edit_form)
+
+        btn_row = QHBoxLayout()
+        btn_row.addStretch()
+        save_profile_btn = QPushButton("✓  Speichern")
+        save_profile_btn.setObjectName("primary")
+        save_profile_btn.clicked.connect(self._save_profile)
+        btn_row.addWidget(save_profile_btn)
+        cancel_profile_btn = QPushButton("Abbrechen")
+        cancel_profile_btn.clicked.connect(self._cancel_profile_edit)
+        btn_row.addWidget(cancel_profile_btn)
+        edit_outer.addLayout(btn_row)
+
+        rl.addWidget(self._info_edit_frame)
+
         # Überschrift Regeln + Bearbeiten-Button
         rules_header = QHBoxLayout()
         rules_lbl = QLabel("Verfügbarkeitsregeln")
-        rules_lbl.setStyleSheet("font-weight: bold; font-size: 13px;")
+        rules_lbl.setObjectName("section-title")
         rules_header.addWidget(rules_lbl)
         rules_header.addStretch()
         self._edit_btn = QPushButton("✏  Bearbeiten")
@@ -208,16 +260,13 @@ class EmployeeView(QWidget):
     def _build_add_form(self) -> QFrame:
         """Erstellt das Formular zum Hinzufügen einer neuen Regel."""
         frame = QFrame()
-        frame.setStyleSheet(
-            "QFrame { border: 1px solid #E4E4E7; border-radius: 8px; }"
-            "QLabel { background: transparent; border: none; }"
-        )
+        frame.setObjectName("card")
         layout = QVBoxLayout(frame)
         layout.setContentsMargins(12, 10, 12, 10)
         layout.setSpacing(8)
 
         self._form_title_lbl = QLabel("Neue Regel hinzufügen")
-        self._form_title_lbl.setStyleSheet("font-weight: bold; font-size: 12px;")
+        self._form_title_lbl.setObjectName("section-title")
         layout.addWidget(self._form_title_lbl)
 
         # Zeile 1: Regeltyp + Geltungsbereich
@@ -276,10 +325,7 @@ class EmployeeView(QWidget):
         row3.addWidget(self._note_edit, 1)
 
         self._submit_btn = QPushButton("＋  Hinzufügen")
-        self._submit_btn.setStyleSheet(
-            "background: #18181B; color: #FAFAFA; font-weight: 600;"
-            "padding: 5px 14px; border-radius: 6px; border: none;"
-        )
+        self._submit_btn.setObjectName("primary")
         self._submit_btn.clicked.connect(self._add_rule)
         row3.addWidget(self._submit_btn)
 
@@ -319,9 +365,10 @@ class EmployeeView(QWidget):
     def _on_employee_selected(self, row: int) -> None:
         if row < 0 or row >= len(self._employees):
             return
-        # Edit-Modus beim Mitarbeiterwechsel beenden
         if self._edit_mode:
             self._set_edit_mode(False)
+        if self._profile_edit_mode:
+            self._cancel_profile_edit()
         self._show_employee(self._employees[row])
 
     def _show_employee(self, emp) -> None:
@@ -346,6 +393,103 @@ class EmployeeView(QWidget):
         self._special_lbl.setText(", ".join(specials) if specials else "–")
 
         self._populate_rules_table(emp)
+
+    # ------------------------------------------------------------------
+    # Profil bearbeiten
+    # ------------------------------------------------------------------
+
+    def _toggle_profile_edit(self) -> None:
+        if not self._profile_edit_mode:
+            self._start_profile_edit()
+        else:
+            self._cancel_profile_edit()
+
+    def _start_profile_edit(self) -> None:
+        row = self._list.currentRow()
+        if row < 0:
+            return
+        emp = self._employees[row]
+
+        self._edit_name.setText(emp.name)
+
+        idx = self._edit_skill.findData(emp.skill_level)
+        if idx >= 0:
+            self._edit_skill.setCurrentIndex(idx)
+
+        idx = self._edit_contract.findData(emp.contract_type)
+        if idx >= 0:
+            self._edit_contract.setCurrentIndex(idx)
+
+        self._edit_hours.setValue(emp.target_hours_per_month)
+        self._edit_prefers_between.setChecked(bool(emp.prefers_between_shift))
+        self._edit_max_late.setValue(emp.max_late_shifts_per_week or 0)
+
+        self._profile_edit_mode = True
+        self._info_frame.setVisible(False)
+        self._info_edit_frame.setVisible(True)
+        self._profile_edit_btn.setText("✕  Abbrechen")
+        self._profile_edit_btn.setStyleSheet(
+            "QPushButton { background: #B91C1C; color: #FAFAFA; border: none;"
+            " font-weight: 600; border-radius: 6px; padding: 7px 16px; }"
+            "QPushButton:hover { background: #991B1B; }"
+        )
+
+    def _cancel_profile_edit(self) -> None:
+        self._profile_edit_mode = False
+        self._info_frame.setVisible(True)
+        self._info_edit_frame.setVisible(False)
+        self._profile_edit_btn.setText("✏  Bearbeiten")
+        self._profile_edit_btn.setStyleSheet("")
+
+    def _save_profile(self) -> None:
+        row = self._list.currentRow()
+        if row < 0 or row >= len(self._employees):
+            return
+        emp = self._employees[row]
+
+        name = self._edit_name.text().strip()
+        if not name:
+            QMessageBox.warning(self, "Pflichtfeld", "Bitte einen Namen eingeben.")
+            return
+
+        try:
+            with get_session() as session:
+                obj = session.get(Employee, emp.id)
+                if obj:
+                    obj.name = name
+                    obj.skill_level = self._edit_skill.currentData()
+                    obj.contract_type = self._edit_contract.currentData()
+                    obj.target_hours_per_month = self._edit_hours.value()
+                    obj.prefers_between_shift = self._edit_prefers_between.isChecked()
+                    max_late = self._edit_max_late.value()
+                    obj.max_late_shifts_per_week = max_late if max_late > 0 else None
+        except Exception as exc:
+            QMessageBox.warning(self, "Fehler", f"Profil konnte nicht gespeichert werden:\n{exc}")
+            return
+
+        saved_id = emp.id
+        self._cancel_profile_edit()
+
+        with get_session() as session:
+            self._employees = EmployeeRepository(session).get_all()
+
+        self._list.blockSignals(True)
+        self._list.clear()
+        select_row = 0
+        for i, e in enumerate(self._employees):
+            color = SKILL_COLOR.get(e.skill_level, "#999")
+            item = QListWidgetItem(f"  {e.name}")
+            item.setForeground(QBrush(QColor(color)))
+            item.setToolTip(
+                f"{SKILL_LABEL.get(e.skill_level, e.skill_level)} · "
+                f"{CONTRACT_LABEL.get(e.contract_type, e.contract_type)}"
+            )
+            self._list.addItem(item)
+            if e.id == saved_id:
+                select_row = i
+        self._list.blockSignals(False)
+        self._list.setCurrentRow(select_row)
+        self._show_employee(self._employees[select_row])
 
     def _populate_rules_table(self, emp) -> None:
         rules = sorted(emp.availability_rules, key=lambda r: r.rule_type)
@@ -386,8 +530,8 @@ class EmployeeView(QWidget):
             edit_btn = QPushButton("✏ Bearbeiten")
             edit_btn.setStyleSheet(
                 "QPushButton { background: #18181B; color: #FAFAFA; border: none;"
-                " border-right: 1px solid #3F3F46;"
-                " border-radius: 0; font-size: 12px; padding: 0 8px; }"
+                " border-right: 1px solid #3F3F46; border-radius: 0;"
+                " font-size: 12px; padding: 0 8px; }"
                 "QPushButton:hover { background: #27272A; }"
             )
             edit_btn.clicked.connect(lambda _checked, rid=rule_id: self._start_edit_rule(rid))
@@ -422,8 +566,9 @@ class EmployeeView(QWidget):
         if active:
             self._edit_btn.setText("✓  Fertig")
             self._edit_btn.setStyleSheet(
-                "background: #15803D; color: #FAFAFA; font-weight: 600;"
-                "border: none; border-radius: 6px; padding: 5px 10px;"
+                "QPushButton { background: #18181B; color: #FAFAFA; font-weight: 600;"
+                " border: none; border-radius: 6px; padding: 7px 16px; }"
+                "QPushButton:hover { background: #27272A; }"
             )
         else:
             self._edit_btn.setText("✏  Bearbeiten")

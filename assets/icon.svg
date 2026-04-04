@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Background -->
+  <rect width="512" height="512" rx="112" fill="#18181B"/>
+
+  <!-- Header bar (Tabellenüberschrift / Wochentage) -->
+  <rect x="60" y="64" width="392" height="52" rx="10" fill="#3F3F46"/>
+  <!-- Day marker dots -->
+  <circle cx="138" cy="90" r="8" fill="#71717A"/>
+  <circle cx="204" cy="90" r="8" fill="#71717A"/>
+  <circle cx="270" cy="90" r="8" fill="#71717A"/>
+  <circle cx="336" cy="90" r="8" fill="#71717A"/>
+  <circle cx="402" cy="90" r="8" fill="#71717A"/>
+
+  <!-- Row 1 – Mitarbeiter A -->
+  <!-- Name strip -->
+  <rect x="60" y="132" width="48" height="72" rx="8" fill="#3F3F46"/>
+  <!-- Shifts: F Z S N frei -->
+  <rect x="120" y="132" width="66" height="72" rx="8" fill="#1E3A5F"/>
+  <rect x="196" y="132" width="66" height="72" rx="8" fill="#064E3B"/>
+  <rect x="272" y="132" width="66" height="72" rx="8" fill="#064E3B"/>
+  <rect x="348" y="132" width="66" height="72" rx="8" fill="#431407"/>
+  <rect x="424" y="132" width="28" height="72" rx="8" fill="#27272A"/>
+
+  <!-- Row 2 – Mitarbeiter B -->
+  <rect x="60" y="216" width="48" height="72" rx="8" fill="#3F3F46"/>
+  <rect x="120" y="216" width="66" height="72" rx="8" fill="#431407"/>
+  <rect x="196" y="216" width="66" height="72" rx="8" fill="#27272A"/>
+  <rect x="272" y="216" width="66" height="72" rx="8" fill="#1E3A5F"/>
+  <rect x="348" y="216" width="66" height="72" rx="8" fill="#2E1065"/>
+  <rect x="424" y="216" width="28" height="72" rx="8" fill="#064E3B"/>
+
+  <!-- Row 3 – Mitarbeiter C -->
+  <rect x="60" y="300" width="48" height="72" rx="8" fill="#3F3F46"/>
+  <rect x="120" y="300" width="66" height="72" rx="8" fill="#2E1065"/>
+  <rect x="196" y="300" width="66" height="72" rx="8" fill="#1E3A5F"/>
+  <rect x="272" y="300" width="66" height="72" rx="8" fill="#27272A"/>
+  <rect x="348" y="300" width="66" height="72" rx="8" fill="#064E3B"/>
+  <rect x="424" y="300" width="28" height="72" rx="8" fill="#431407"/>
+
+  <!-- Row 4 – Mitarbeiter D -->
+  <rect x="60" y="384" width="48" height="68" rx="8" fill="#3F3F46"/>
+  <rect x="120" y="384" width="66" height="68" rx="8" fill="#27272A"/>
+  <rect x="196" y="384" width="66" height="68" rx="8" fill="#431407"/>
+  <rect x="272" y="384" width="66" height="68" rx="8" fill="#2E1065"/>
+  <rect x="348" y="384" width="66" height="68" rx="8" fill="#1E3A5F"/>
+  <rect x="424" y="384" width="28" height="68" rx="8" fill="#27272A"/>
+</svg>

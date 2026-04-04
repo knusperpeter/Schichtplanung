@@ -17,7 +17,7 @@ from __future__ import annotations
 
 from datetime import date
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QSettings
 from PySide6.QtWidgets import (
     QMainWindow, QTabWidget, QWidget, QVBoxLayout,
     QMenuBar, QMenu, QMessageBox, QFileDialog, QStatusBar, QPushButton,
@@ -44,6 +44,7 @@ class MainWindow(QMainWindow):
         self._dark_mode = False
         self._setup_ui()
         self._setup_menu()
+        self._restore_settings()
 
     # ------------------------------------------------------------------
     # UI Setup
@@ -158,6 +159,9 @@ class MainWindow(QMainWindow):
 
     def _toggle_dark_mode(self) -> None:
         self._dark_mode = not self._dark_mode
+        self._apply_dark_mode()
+
+    def _apply_dark_mode(self) -> None:
         QApplication.instance().setStyleSheet(
             DARK_STYLESHEET if self._dark_mode else APP_STYLESHEET
         )
@@ -167,6 +171,20 @@ class MainWindow(QMainWindow):
         self._dark_btn.setText("☀️  Hell" if self._dark_mode else "🌙  Dark")
         self._plan_view.set_dark_mode(self._dark_mode)
         self._val_bar.set_dark_mode(self._dark_mode)
+
+    def _restore_settings(self) -> None:
+        s = QSettings()
+        if geometry := s.value("window/geometry"):
+            self.restoreGeometry(geometry)
+        if s.value("window/dark_mode", False, type=bool):
+            self._dark_mode = True
+            self._apply_dark_mode()
+
+    def closeEvent(self, event) -> None:
+        s = QSettings()
+        s.setValue("window/geometry", self.saveGeometry())
+        s.setValue("window/dark_mode", self._dark_mode)
+        super().closeEvent(event)
 
     def _on_violations_changed(self, violations: list[str], warnings: list[str]) -> None:
         self._val_bar.show_violations(violations, warnings)

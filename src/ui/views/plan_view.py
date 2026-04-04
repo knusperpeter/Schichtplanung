@@ -157,8 +157,7 @@ class _DayHeaderView(QHeaderView):
                 f"{occ.occupied_rooms} Zi."
             )
         else:
-            no_data_fg = _HDR_WEEKEND_FG if is_weekend else QColor("#94A3B8")
-            painter.setPen(QPen(no_data_fg))
+            painter.setPen(QPen(date_fg))
             font2 = QFont()
             font2.setPointSize(7)
             painter.setFont(font2)
@@ -166,7 +165,7 @@ class _DayHeaderView(QHeaderView):
 
         # Auslastungsbalken (unterste Zeile)
         if occ:
-            bar_color = _OCC_COLORS.get(occ.occupancy_level, QColor("#CBD5E1"))
+            bar_color = _OCC_COLORS.get(occ.occupancy_level, QColor("#E4E4E7"))
             bar_rect = QRect(
                 rect.left() + 1,
                 rect.bottom() - _BAR_H + 1,
@@ -254,10 +253,6 @@ class PlanView(QWidget):
 
         self._gen_btn = QPushButton("  Plan generieren  ")
         self._gen_btn.setObjectName("primary")
-        self._gen_btn.setStyleSheet(
-            "background: #18181B; color: #FAFAFA; font-weight: 600;"
-            "padding: 6px 14px; border-radius: 6px; border: none; font-size: 12px;"
-        )
         self._gen_btn.clicked.connect(self._open_generate_dialog)
         toolbar.addWidget(self._gen_btn)
 
@@ -374,7 +369,7 @@ class PlanView(QWidget):
             # Zeilen-Header: Name + Skill-Farbe
             h_item = QTableWidgetItem(f" {emp.name}")
             h_item.setFont(QFont("", 11, QFont.Weight.Bold))
-            h_item.setForeground(QBrush(QColor(SKILL_COLOR.get(emp.skill_level, "#1E293B"))))
+            h_item.setForeground(QBrush(QColor(SKILL_COLOR.get(emp.skill_level, "#71717A"))))
             self._table.setVerticalHeaderItem(row, h_item)
 
             # Schicht-Buttons

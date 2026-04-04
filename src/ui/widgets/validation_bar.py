@@ -31,14 +31,14 @@ class ValidationBar(QWidget):
     def set_dark_mode(self, dark: bool) -> None:
         self._dark_mode = dark
         self._detail_frame.setStyleSheet(
-            "background: #1E293B; border-top: 1px solid #334155;"
+            "background: #18181B; border-top: 1px solid #3F3F46;"
             if dark else
-            "background: #FAFAFA; border-top: 1px solid #CBD5E1;"
+            "background: #FAFAFA; border-top: 1px solid #E4E4E7;"
         )
         self._detail_content.setStyleSheet(
-            "font-size: 11px; color: #F1F5F9; line-height: 1.6;"
+            "font-size: 11px; color: #FAFAFA; line-height: 1.6;"
             if dark else
-            "font-size: 11px; color: #1E293B; line-height: 1.6;"
+            "font-size: 11px; color: #09090B; line-height: 1.6;"
         )
         if self._violations or self._warnings:
             self._rebuild_detail()
@@ -97,7 +97,7 @@ class ValidationBar(QWidget):
         self._detail_frame = QFrame()
         self._detail_frame.setFrameShape(QFrame.Shape.StyledPanel)
         self._detail_frame.setMaximumHeight(150)
-        self._detail_frame.setStyleSheet("background: #FAFAFA; border-top: 1px solid #CBD5E1;")
+        self._detail_frame.setStyleSheet("background: #FAFAFA; border-top: 1px solid #E4E4E7;")
         self._detail_frame.setVisible(False)
 
         detail_layout = QVBoxLayout(self._detail_frame)
@@ -109,7 +109,7 @@ class ValidationBar(QWidget):
         self._detail_content = QLabel()
         self._detail_content.setWordWrap(True)
         self._detail_content.setAlignment(Qt.AlignmentFlag.AlignTop)
-        self._detail_content.setStyleSheet("font-size: 11px; color: #1E293B; line-height: 1.6;")
+        self._detail_content.setStyleSheet("font-size: 11px; color: #09090B; line-height: 1.6;")
         scroll.setWidget(self._detail_content)
         detail_layout.addWidget(scroll)
 

@@ -16,11 +16,18 @@ REM --- 2. Abhängigkeiten installieren ---
 echo [1/4] Installiere Python-Pakete...
 pip install --quiet PySide6 sqlalchemy ortools reportlab pyinstaller
 
+REM --- 2b. Windows-Icon bauen ---
+pip install --quiet pillow
+python assets\build_icon_win.py
+
 REM --- 3. App bauen ---
 echo [2/4] Baue App mit PyInstaller...
 python -m PyInstaller ^
   --windowed ^
   --name "Schichtplanung" ^
+  --icon "assets\icon.ico" ^
+  --add-data "assets\icon.png;assets" ^
+  --add-data "assets\icon.ico;assets" ^
   --collect-all ortools ^
   --collect-all PySide6 ^
   --collect-all reportlab ^

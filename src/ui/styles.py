@@ -191,6 +191,56 @@ QPushButton#primary {
 }
 QPushButton#primary:hover  { background: #27272A; }
 QPushButton#primary:pressed { background: #3F3F46; }
+QPushButton#destructive {
+    background: #B91C1C;
+    color: #FAFAFA;
+    border: none;
+    font-weight: 600;
+}
+QPushButton#destructive:hover  { background: #991B1B; }
+QPushButton#destructive:pressed { background: #7F1D1D; }
+
+/* ── Cards / Panels ─────────────────────────────────────────────── */
+QFrame#card {
+    border: 1px solid #E4E4E7;
+    border-radius: 8px;
+    background: #FFFFFF;
+}
+QFrame#card QLabel { background: transparent; border: none; }
+
+/* ── Progress ───────────────────────────────────────────────────── */
+QProgressBar {
+    border: none;
+    border-radius: 4px;
+    background: #F4F4F5;
+    min-height: 8px;
+    max-height: 8px;
+    text-align: center;
+    font-size: 0px;
+}
+QProgressBar::chunk {
+    background: #18181B;
+    border-radius: 4px;
+}
+
+/* ── Checkbox ───────────────────────────────────────────────────── */
+QCheckBox {
+    spacing: 8px;
+    font-size: 13px;
+    color: #09090B;
+}
+QCheckBox::indicator {
+    width: 16px;
+    height: 16px;
+    border: 1px solid #E4E4E7;
+    border-radius: 4px;
+    background: #FFFFFF;
+}
+QCheckBox::indicator:hover { border-color: #A1A1AA; }
+QCheckBox::indicator:checked {
+    background: #18181B;
+    border-color: #18181B;
+}
 
 /* ── Tabellen (shadcn/ui Table-Stil) ────────────────────────────── */
 QTableWidget {
@@ -479,6 +529,52 @@ QPushButton#primary {
 }
 QPushButton#primary:hover  { background: #F4F4F5; }
 QPushButton#primary:pressed { background: #D4D4D8; }
+QPushButton#destructive {
+    background: #7F1D1D;
+    color: #FAFAFA;
+    border: none;
+    font-weight: 600;
+}
+QPushButton#destructive:hover  { background: #991B1B; }
+QPushButton#destructive:pressed { background: #B91C1C; }
+
+/* ── Cards / Panels ─────────────────────────────────────────────── */
+QFrame#card {
+    border: 1px solid #3F3F46;
+    border-radius: 8px;
+    background: #18181B;
+}
+QFrame#card QLabel { background: transparent; border: none; }
+
+/* ── Progress ───────────────────────────────────────────────────── */
+QProgressBar {
+    border: none;
+    border-radius: 4px;
+    background: #27272A;
+    min-height: 8px;
+    max-height: 8px;
+    text-align: center;
+    font-size: 0px;
+}
+QProgressBar::chunk {
+    background: #E4E4E7;
+    border-radius: 4px;
+}
+
+/* ── Checkbox ───────────────────────────────────────────────────── */
+QCheckBox { spacing: 8px; font-size: 13px; color: #FAFAFA; }
+QCheckBox::indicator {
+    width: 16px;
+    height: 16px;
+    border: 1px solid #3F3F46;
+    border-radius: 4px;
+    background: #18181B;
+}
+QCheckBox::indicator:hover { border-color: #71717A; }
+QCheckBox::indicator:checked {
+    background: #E4E4E7;
+    border-color: #E4E4E7;
+}
 
 /* ── Tabellen (shadcn/ui Table-Stil – Dark) ─────────────────────── */
 QTableWidget {

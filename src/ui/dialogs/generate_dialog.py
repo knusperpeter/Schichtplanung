@@ -86,12 +86,12 @@ class GenerateDialog(QDialog):
 
         # Titel
         title = QLabel("Neuen Schichtplan erstellen")
-        title.setStyleSheet("font-size: 16px; font-weight: bold;")
+        title.setObjectName("section-title")
         layout.addWidget(title)
 
         sep = QFrame()
         sep.setFrameShape(QFrame.Shape.HLine)
-        sep.setStyleSheet("color: #E0E0E0;")
+        sep.setStyleSheet("color: #E4E4E7;")
         layout.addWidget(sep)
 
         # Datumswahl
@@ -114,14 +114,12 @@ class GenerateDialog(QDialog):
 
         # Belegungsstatus
         self._occ_frame = QFrame()
-        self._occ_frame.setStyleSheet(
-            "border: 1px solid #CBD5E1; border-radius: 4px; padding: 4px;"
-        )
+        self._occ_frame.setObjectName("card")
         occ_layout = QVBoxLayout(self._occ_frame)
         occ_layout.setContentsMargins(10, 8, 10, 8)
         occ_layout.setSpacing(3)
         self._occ_title = QLabel("Belegungsdaten")
-        self._occ_title.setStyleSheet("font-weight: bold; font-size: 12px;")
+        self._occ_title.setObjectName("section-title")
         occ_layout.addWidget(self._occ_title)
         self._occ_status = QLabel()
         self._occ_status.setStyleSheet("font-size: 11px;")
@@ -135,10 +133,6 @@ class GenerateDialog(QDialog):
         prog_layout.setContentsMargins(0, 0, 0, 0)
         self._progress_bar = QProgressBar()
         self._progress_bar.setRange(0, 0)   # indeterminate
-        self._progress_bar.setStyleSheet(
-            "QProgressBar { border-radius: 4px; height: 10px; }"
-            "QProgressBar::chunk { background: #18181B; }"
-        )
         prog_layout.addWidget(self._progress_bar)
         self._progress_label = QLabel("Solver läuft…")
         self._progress_label.setStyleSheet("font-size: 11px;")
@@ -154,10 +148,6 @@ class GenerateDialog(QDialog):
         btn_row.addWidget(self._cancel_btn)
         self._generate_btn = QPushButton("Generieren")
         self._generate_btn.setObjectName("primary")
-        self._generate_btn.setStyleSheet(
-            "background: #18181B; color: #FAFAFA; font-weight: 600;"
-            "padding: 8px 20px; border-radius: 6px; border: none;"
-        )
         self._generate_btn.clicked.connect(self._start_generation)
         btn_row.addWidget(self._generate_btn)
         layout.addLayout(btn_row)

@@ -58,7 +58,6 @@ class OccupancyView(QWidget):
         # Titel + Hilfe
         title = QLabel("Hotelbelegung eingeben")
         title.setObjectName("section-title")
-        title.setStyleSheet("font-size: 16px; font-weight: bold;")
         root.addWidget(title)
 
         hint = QLabel(
@@ -67,7 +66,6 @@ class OccupancyView(QWidget):
         )
         hint.setObjectName("info")
         hint.setWordWrap(True)
-        hint.setStyleSheet("font-size: 12px;")
         root.addWidget(hint)
 
         # Startdatum
@@ -116,10 +114,7 @@ class OccupancyView(QWidget):
         btn_row = QHBoxLayout()
         btn_row.addStretch()
         self._save_btn = QPushButton("Belegung speichern")
-        self._save_btn.setStyleSheet(
-            "background: #18181B; color: #FAFAFA; font-weight: 600;"
-            "padding: 8px 20px; border-radius: 6px; border: none;"
-        )
+        self._save_btn.setObjectName("primary")
         self._save_btn.clicked.connect(self._save)
         btn_row.addWidget(self._save_btn)
         root.addLayout(btn_row)
