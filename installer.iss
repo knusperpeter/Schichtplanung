@@ -21,7 +21,7 @@ WizardStyle=modern
 Name: "german"; MessagesFile: "compiler:Languages\German.isl"
 
 [Tasks]
-Name: "desktopicon"; Description: "Desktop-Verknüpfung erstellen"; GroupDescription: "Zusätzliche Symbole:"; Flags: checked
+Name: "desktopicon"; Description: "Desktop-Verknüpfung erstellen"; GroupDescription: "Zusätzliche Symbole:"
 
 [Files]
 Source: "dist\Schichtplanung\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
