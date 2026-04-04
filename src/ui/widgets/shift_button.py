@@ -11,7 +11,7 @@ from PySide6.QtCore import Signal
 from PySide6.QtGui import QCursor, QAction
 from PySide6.QtWidgets import QPushButton, QMenu, QSizePolicy
 
-from src.ui.styles import SHIFT_BG, SHIFT_FG, SHIFT_LABEL
+from src.ui.styles import SHIFT_BG, SHIFT_FG, SHIFT_BG_DARK, SHIFT_FG_DARK, SHIFT_LABEL
 
 
 class ShiftButton(QPushButton):
@@ -40,6 +40,7 @@ class ShiftButton(QPushButton):
         self._shift = shift_type
         self._is_manual = is_manual
 
+        self._dark_mode = False
         self.setFlat(True)
         self.setCursor(QCursor())
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
@@ -60,13 +61,17 @@ class ShiftButton(QPushButton):
         self._is_manual = is_manual
         self._apply_style()
 
+    def set_dark_mode(self, dark: bool) -> None:
+        self._dark_mode = dark
+        self._apply_style()
+
     # ------------------------------------------------------------------
     # Privat
     # ------------------------------------------------------------------
 
     def _apply_style(self) -> None:
-        bg = SHIFT_BG.get(self._shift, SHIFT_BG[""])
-        fg = SHIFT_FG.get(self._shift, SHIFT_FG[""])
+        bg = (SHIFT_BG_DARK if self._dark_mode else SHIFT_BG).get(self._shift, SHIFT_BG_DARK[""] if self._dark_mode else SHIFT_BG[""])
+        fg = (SHIFT_FG_DARK if self._dark_mode else SHIFT_FG).get(self._shift, SHIFT_FG_DARK[""] if self._dark_mode else SHIFT_FG[""])
         label = self._shift if self._shift else "–"
         if self._is_manual and self._shift:
             label += "*"

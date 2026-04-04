@@ -69,6 +69,7 @@ _SCOPE_NEEDS_DAY   = {"DAY_OF_WEEK", "DAY_AND_SHIFT"}
 _SCOPE_NEEDS_DATE  = {"SPECIFIC_DATE"}
 
 
+
 class EmployeeView(QWidget):
     """Mitarbeiterübersicht mit editierbaren Verfügbarkeitsregeln."""
 
@@ -76,6 +77,7 @@ class EmployeeView(QWidget):
         super().__init__(parent)
         self._employees: list = []
         self._edit_mode = False
+        self._editing_rule_id: int | None = None
         self._setup_ui()
         self.refresh()
 
@@ -181,10 +183,10 @@ class EmployeeView(QWidget):
             ["Typ", "Geltungsbereich", "Details", "Notiz", ""]
         )
         self._rules_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
-        self._rules_table.horizontalHeader().setSectionResizeMode(
-            4, QHeaderView.ResizeMode.Fixed
-        )
-        self._rules_table.setColumnWidth(4, 100)
+        self._rules_table.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.Interactive)
+        self._rules_table.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeMode.Fixed)
+        self._rules_table.setColumnWidth(3, 200)
+        self._rules_table.setColumnWidth(4, 160)
         self._rules_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self._rules_table.setSelectionMode(QTableWidget.SelectionMode.NoSelection)
         self._rules_table.verticalHeader().setVisible(False)
@@ -214,9 +216,9 @@ class EmployeeView(QWidget):
         layout.setContentsMargins(12, 10, 12, 10)
         layout.setSpacing(8)
 
-        lbl = QLabel("Neue Regel hinzufügen")
-        lbl.setStyleSheet("font-weight: bold; color: #2C3E50; font-size: 12px;")
-        layout.addWidget(lbl)
+        self._form_title_lbl = QLabel("Neue Regel hinzufügen")
+        self._form_title_lbl.setStyleSheet("font-weight: bold; font-size: 12px;")
+        layout.addWidget(self._form_title_lbl)
 
         # Zeile 1: Regeltyp + Geltungsbereich
         row1 = QHBoxLayout()
@@ -273,13 +275,19 @@ class EmployeeView(QWidget):
         self._note_edit.setPlaceholderText("Optional …")
         row3.addWidget(self._note_edit, 1)
 
-        add_btn = QPushButton("＋  Hinzufügen")
-        add_btn.setStyleSheet(
+        self._submit_btn = QPushButton("＋  Hinzufügen")
+        self._submit_btn.setStyleSheet(
             "background: #18181B; color: #FAFAFA; font-weight: 600;"
             "padding: 5px 14px; border-radius: 6px; border: none;"
         )
-        add_btn.clicked.connect(self._add_rule)
-        row3.addWidget(add_btn)
+        self._submit_btn.clicked.connect(self._add_rule)
+        row3.addWidget(self._submit_btn)
+
+        self._cancel_edit_btn = QPushButton("Abbrechen")
+        self._cancel_edit_btn.setVisible(False)
+        self._cancel_edit_btn.clicked.connect(self._cancel_edit)
+        row3.addWidget(self._cancel_edit_btn)
+
         layout.addLayout(row3)
 
         # Initialen Scope-Zustand setzen
@@ -368,22 +376,35 @@ class EmployeeView(QWidget):
             self._rules_table.setItem(row, 2, detail_item)
 
             # Notiz
-            note_item = QTableWidgetItem(rule.note or "")
+            note_text = rule.note or ""
+            note_item = QTableWidgetItem(note_text)
+            note_item.setToolTip(note_text)
             self._rules_table.setItem(row, 3, note_item)
 
-            # Löschen-Button (Spalte 4, nur in Edit-Modus sichtbar)
-            del_btn = QPushButton("✕ Entfernen")
+            # Bearbeiten + Löschen (Spalte 4, nur in Edit-Modus sichtbar)
+            rule_id = rule.id
+            edit_btn = QPushButton("✏ Bearbeiten")
+            edit_btn.setStyleSheet(
+                "QPushButton { background: #18181B; color: #FAFAFA; border: none;"
+                " border-right: 1px solid #3F3F46;"
+                " border-radius: 0; font-size: 12px; padding: 0 8px; }"
+                "QPushButton:hover { background: #27272A; }"
+            )
+            edit_btn.clicked.connect(lambda _checked, rid=rule_id: self._start_edit_rule(rid))
+
+            del_btn = QPushButton("✕")
             del_btn.setStyleSheet(
                 "QPushButton { background: #B91C1C; color: #FAFAFA; border: none;"
-                " border-radius: 0px; font-size: 12px; padding: 0; margin: 0; }"
+                " border-radius: 0; font-size: 12px; padding: 0 8px; }"
                 "QPushButton:hover { background: #991B1B; }"
             )
-            rule_id = rule.id
             del_btn.clicked.connect(lambda _checked, rid=rule_id: self._delete_rule(rid))
+
             cell = QWidget()
             cell_layout = QHBoxLayout(cell)
             cell_layout.setContentsMargins(0, 0, 0, 0)
             cell_layout.setSpacing(0)
+            cell_layout.addWidget(edit_btn, 1)
             cell_layout.addWidget(del_btn)
             self._rules_table.setCellWidget(row, 4, cell)
 
@@ -426,7 +447,57 @@ class EmployeeView(QWidget):
         self._date_edit.setVisible(needs_date)
 
     # ------------------------------------------------------------------
-    # Regel hinzufügen
+    # Regel bearbeiten
+    # ------------------------------------------------------------------
+
+    def _start_edit_rule(self, rule_id: int) -> None:
+        emp_row = self._list.currentRow()
+        if emp_row < 0:
+            return
+        emp = self._employees[emp_row]
+        rule = next((r for r in emp.availability_rules if r.id == rule_id), None)
+        if rule is None:
+            return
+
+        self._editing_rule_id = rule_id
+
+        idx = self._type_combo.findData(rule.rule_type)
+        if idx >= 0:
+            self._type_combo.setCurrentIndex(idx)
+
+        idx = self._scope_combo.findData(rule.scope)
+        if idx >= 0:
+            self._scope_combo.setCurrentIndex(idx)
+        self._on_scope_changed(0)
+
+        if rule.shift_type:
+            idx = self._shift_combo.findData(rule.shift_type)
+            if idx >= 0:
+                self._shift_combo.setCurrentIndex(idx)
+
+        if rule.day_of_week is not None:
+            idx = self._day_combo.findData(rule.day_of_week)
+            if idx >= 0:
+                self._day_combo.setCurrentIndex(idx)
+
+        if rule.specific_date:
+            d = rule.specific_date
+            self._date_edit.setDate(QDate(d.year, d.month, d.day))
+
+        self._note_edit.setText(rule.note or "")
+        self._form_title_lbl.setText("Regel bearbeiten")
+        self._submit_btn.setText("✓  Speichern")
+        self._cancel_edit_btn.setVisible(True)
+
+    def _cancel_edit(self) -> None:
+        self._editing_rule_id = None
+        self._form_title_lbl.setText("Neue Regel hinzufügen")
+        self._submit_btn.setText("＋  Hinzufügen")
+        self._cancel_edit_btn.setVisible(False)
+        self._note_edit.clear()
+
+    # ------------------------------------------------------------------
+    # Regel hinzufügen / speichern
     # ------------------------------------------------------------------
 
     def _add_rule(self) -> None:
@@ -457,12 +528,16 @@ class EmployeeView(QWidget):
 
         try:
             with get_session() as session:
+                if self._editing_rule_id is not None:
+                    old = session.get(AvailabilityRule, self._editing_rule_id)
+                    if old:
+                        EmployeeRepository(session).delete_rule(old)
                 EmployeeRepository(session).add_rule(new_rule)
         except Exception as exc:
             QMessageBox.warning(self, "Fehler", f"Regel konnte nicht gespeichert werden:\n{exc}")
             return
 
-        self._note_edit.clear()
+        self._cancel_edit()
         self._reload_current_employee()
 
     # ------------------------------------------------------------------

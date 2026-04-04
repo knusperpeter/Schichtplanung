@@ -32,6 +32,23 @@ SHIFT_FG: dict[str, str] = {
     "":  "#52525B",   # zinc-600    auf zinc-100    6.1:1 ✓
 }
 
+# Dark-Mode Shift-Farben (satte Dunkelton-Hintergründe, helle Texte)
+SHIFT_BG_DARK: dict[str, str] = {
+    "F": "#1E3A5F",   # dark blue
+    "Z": "#064E3B",   # dark emerald
+    "S": "#431407",   # dark orange
+    "N": "#2E1065",   # dark violet
+    "":  "#27272A",   # zinc-800
+}
+
+SHIFT_FG_DARK: dict[str, str] = {
+    "F": "#93C5FD",   # blue-300
+    "Z": "#6EE7B7",   # emerald-300
+    "S": "#FDBA74",   # orange-300
+    "N": "#C4B5FD",   # violet-300
+    "":  "#A1A1AA",   # zinc-400
+}
+
 SHIFT_LABEL: dict[str, str] = {
     "F": "Frühschicht  (06:00 – 14:30)",
     "Z": "Zwischenschicht  (10:15 – 18:45)",

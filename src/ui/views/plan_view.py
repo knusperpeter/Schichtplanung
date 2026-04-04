@@ -52,13 +52,8 @@ def _rule_covers(rule, day: date, shift_type: str) -> bool:
         return False
     return True
 
-# Header-Farben für Tagesspalten
-_HDR_WEEKDAY_BG = QColor("#18181B")   # zinc-900
-_HDR_WEEKDAY_FG = QColor("#F4F4F5")   # zinc-100
-_HDR_WEEKEND_BG = QColor("#FEF9C3")   # yellow-100
-_HDR_WEEKEND_FG = QColor("#92400E")   # amber-800
-
-WEEKEND_BG = QColor("#FFFBF0")
+WEEKEND_BG      = QColor("#FFFBF0")
+WEEKEND_BG_DARK = QColor("#292215")
 
 # Auslastungs-Farben grün → gelb → rot
 _OCC_COLORS = {
@@ -76,13 +71,29 @@ class _DayHeaderView(QHeaderView):
     Auslastungsbalken am unteren Rand jeder Tagesspalte.
     """
 
+    # Light-Mode Farben
+    _LIGHT_WEEKDAY_BG = QColor("#F4F4F5")
+    _LIGHT_WEEKDAY_FG = QColor("#3F3F46")
+    _LIGHT_WEEKEND_BG = QColor("#FEF9C3")
+    _LIGHT_WEEKEND_FG = QColor("#92400E")
+    # Dark-Mode Farben
+    _DARK_WEEKDAY_BG  = QColor("#18181B")
+    _DARK_WEEKDAY_FG  = QColor("#F4F4F5")
+    _DARK_WEEKEND_BG  = QColor("#292215")
+    _DARK_WEEKEND_FG  = QColor("#FCD34D")
+
     def __init__(self, parent=None) -> None:
         super().__init__(Qt.Orientation.Horizontal, parent)
         self._days: list[date] = []
         self._occ_map: dict = {}
+        self._dark_mode = False
         self.setHighlightSections(False)
         self.setSectionsClickable(False)
         self.setFixedHeight(58)
+
+    def set_dark_mode(self, dark: bool) -> None:
+        self._dark_mode = dark
+        self.viewport().update()
 
     def set_data(self, days: list[date], occ_map: dict) -> None:
         self._days = days
@@ -102,14 +113,22 @@ class _DayHeaderView(QHeaderView):
         painter.setClipRect(rect)
 
         # Hintergrund
-        painter.fillRect(rect, _HDR_WEEKEND_BG if is_weekend else _HDR_WEEKDAY_BG)
+        if is_weekend:
+            hdr_bg = self._DARK_WEEKEND_BG if self._dark_mode else self._LIGHT_WEEKEND_BG
+        else:
+            hdr_bg = self._DARK_WEEKDAY_BG if self._dark_mode else self._LIGHT_WEEKDAY_BG
+        painter.fillRect(rect, hdr_bg)
 
         # Trennlinie rechts
-        painter.setPen(QPen(QColor("#3F3F46"), 1))
+        divider = QColor("#3F3F46") if self._dark_mode else QColor("#E4E4E7")
+        painter.setPen(QPen(divider, 1))
         painter.drawLine(rect.right(), rect.top(), rect.right(), rect.bottom())
 
         # Wochentag + Datum (obere Hälfte)
-        date_fg = _HDR_WEEKEND_FG if is_weekend else _HDR_WEEKDAY_FG
+        if is_weekend:
+            date_fg = self._DARK_WEEKEND_FG if self._dark_mode else self._LIGHT_WEEKEND_FG
+        else:
+            date_fg = self._DARK_WEEKDAY_FG if self._dark_mode else self._LIGHT_WEEKDAY_FG
         painter.setPen(QPen(date_fg))
         font = QFont()
         font.setBold(True)
@@ -171,8 +190,29 @@ class PlanView(QWidget):
         self._all_period_ids: list[int] = []
         self._employees: list = []
         self._days: list[date] = []
+        self._dark_mode = False
         self._setup_ui()
         self._load_all_periods()
+
+    def set_dark_mode(self, dark: bool) -> None:
+        self._dark_mode = dark
+        grid_color = "#3F3F46" if dark else "#E4E4E7"
+        footer_border = "#3F3F46" if dark else "#E4E4E7"
+        self._table.setStyleSheet(
+            f"QTableWidget {{ border: none; gridline-color: {grid_color}; }}"
+            "QTableWidget::item { padding: 0; border: none; }"
+        )
+        self._footer.setStyleSheet(
+            f"padding: 6px 10px; font-size: 11px; border-top: 1px solid {footer_border};"
+        )
+        # Header aktualisieren
+        self._day_header.set_dark_mode(dark)
+        # Alle ShiftButtons aktualisieren
+        for row in range(self._table.rowCount()):
+            for col in range(self._table.columnCount()):
+                widget = self._table.cellWidget(row, col)
+                if widget is not None:
+                    widget.set_dark_mode(dark)
 
     # ------------------------------------------------------------------
     # UI Setup
@@ -326,6 +366,7 @@ class PlanView(QWidget):
         self._table.setColumnCount(n_days)
 
         # Custom Header mit Tagen + Auslastungsbalken befüllen
+        self._day_header.set_dark_mode(self._dark_mode)
         self._day_header.set_data(days, occ_map)
 
         # Vertikale Header + Zellen
@@ -343,10 +384,12 @@ class PlanView(QWidget):
                 is_manual  = asgn.is_manual_override if asgn else False
 
                 btn = ShiftButton(shift_type, emp.id, day, is_manual=is_manual)
+                btn.set_dark_mode(self._dark_mode)
                 btn.shift_changed.connect(self._on_shift_changed)
                 self._table.setCellWidget(row, col, btn)
 
         # Wochenend-Spalten optisch hervorheben
+        weekend_color = WEEKEND_BG_DARK if self._dark_mode else WEEKEND_BG
         for d_idx, day in enumerate(days):
             if day.weekday() >= 5:
                 for row in range(n_emps):
@@ -354,7 +397,7 @@ class PlanView(QWidget):
                     if item is None:
                         item = QTableWidgetItem()
                         self._table.setItem(row, d_idx, item)
-                    item.setBackground(QBrush(WEEKEND_BG))
+                    item.setBackground(QBrush(weekend_color))
 
         self._table.verticalHeader().setMinimumWidth(140)
         self._table.blockSignals(False)

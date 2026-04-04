@@ -165,6 +165,7 @@ class MainWindow(QMainWindow):
             self._tabs_dark_bar_style if self._dark_mode else self._tabs_light_bar_style
         )
         self._dark_btn.setText("☀️  Hell" if self._dark_mode else "🌙  Dark")
+        self._plan_view.set_dark_mode(self._dark_mode)
         self._val_bar.set_dark_mode(self._dark_mode)
 
     def _on_violations_changed(self, violations: list[str], warnings: list[str]) -> None:
