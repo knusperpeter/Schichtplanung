@@ -1,0 +1,61 @@
+name: macOS Installer bauen
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Code auschecken
+        uses: actions/checkout@v4
+
+      - name: Python einrichten
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Abhängigkeiten installieren
+        run: pip install PySide6 sqlalchemy ortools reportlab pyinstaller
+
+      - name: Icon bauen
+        run: python3 assets/build_icon.py
+
+      - name: App mit PyInstaller bauen
+        run: |
+          python3 -m PyInstaller \
+            --windowed \
+            --name "Schichtplanung" \
+            --icon "assets/icon.icns" \
+            --add-data "assets/icon.png:assets" \
+            --collect-all ortools \
+            --collect-all PySide6 \
+            --collect-all reportlab \
+            --hidden-import sqlalchemy.dialects.sqlite \
+            --noconfirm \
+            main.py
+
+      - name: DMG erstellen
+        run: |
+          mkdir -p dmg_staging
+          cp -r dist/Schichtplanung.app dmg_staging/
+          ln -s /Applications dmg_staging/Applications
+          hdiutil create \
+            -volname "Schichtplanung" \
+            -srcfolder dmg_staging \
+            -ov -format UDZO \
+            Schichtplanung.dmg
+
+      - name: DMG als Artefakt hochladen
+        uses: actions/upload-artifact@v4
+        with:
+          name: Schichtplanung_macOS
+          path: Schichtplanung.dmg
+          retention-days: 90

@@ -2,7 +2,8 @@
 
 Automatische 2-Wochen-Schichtplanung für Hotelbetriebe. Der integrierte CP-SAT-Solver erstellt arbeitsrechtlich konforme Pläne auf Basis von Belegungsdaten und Mitarbeiterverfügbarkeiten.
 
-![Build](https://github.com/knusperpeter/Schichtplanung/actions/workflows/build-windows.yml/badge.svg)
+![Windows Build](https://github.com/knusperpeter/Schichtplanung/actions/workflows/build-windows.yml/badge.svg)
+![macOS Build](https://github.com/knusperpeter/Schichtplanung/actions/workflows/build-macos.yml/badge.svg)
 
 ---
 
@@ -27,13 +28,24 @@ Automatische 2-Wochen-Schichtplanung für Hotelbetriebe. Der integrierte CP-SAT-
 
 ---
 
-## Installation (Windows)
+## Installation
 
-Die fertige Setup-Datei steht nach jedem Build als GitHub-Artefakt bereit:
+### Windows
 
-1. [Actions](../../actions/workflows/build-windows.yml) → aktuellsten erfolgreichen Run öffnen
+1. [Actions → Windows Build](../../actions/workflows/build-windows.yml) → aktuellsten erfolgreichen Run öffnen
 2. Unter **Artifacts** → `Schichtplanung_Setup.exe` herunterladen
 3. Installer ausführen – kein Python erforderlich
+
+### macOS
+
+1. [Actions → macOS Build](../../actions/workflows/build-macos.yml) → aktuellsten erfolgreichen Run öffnen
+2. Unter **Artifacts** → `Schichtplanung_macOS` herunterladen → `Schichtplanung.dmg` entpacken
+3. DMG öffnen → App in den Ordner **Programme** ziehen
+
+> **Erster Start:** Da die App nicht mit einem Apple-Entwicklerzertifikat signiert ist,
+> erscheint beim Doppelklick eine Sicherheitswarnung.
+> **Lösung:** Rechtsklick auf die App → **Öffnen** → im Dialog erneut **Öffnen** klicken.
+> Danach startet die App beim nächsten Doppelklick normal.
 
 ---
 
