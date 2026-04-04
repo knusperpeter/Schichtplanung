@@ -1,9 +1,9 @@
-name: Windows Installer Build
+name: Windows Installer bauen
 
 on:
   push:
-    branches: [ main ]
-  workflow_dispatch:   # manuell auslösbar
+    branches: [main]
+  workflow_dispatch:   # auch manuell auslösbar
 
 jobs:
   build:
@@ -17,15 +17,22 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: pip
 
       - name: Abhängigkeiten installieren
-        run: pip install PySide6 sqlalchemy ortools reportlab pyinstaller
+        run: pip install PySide6 sqlalchemy ortools reportlab pyinstaller pillow
+
+      - name: Windows-Icon bauen
+        run: python assets/build_icon_win.py
 
       - name: App mit PyInstaller bauen
         run: |
           python -m PyInstaller `
             --windowed `
             --name "Schichtplanung" `
+            --icon "assets\icon.ico" `
+            --add-data "assets\icon.png;assets" `
+            --add-data "assets\icon.ico;assets" `
             --collect-all ortools `
             --collect-all PySide6 `
             --collect-all reportlab `
@@ -46,3 +53,4 @@ jobs:
         with:
           name: Schichtplanung_Setup
           path: installer_output\Schichtplanung_Setup.exe
+          retention-days: 90
