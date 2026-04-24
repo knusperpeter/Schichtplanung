@@ -3,7 +3,7 @@ from typing import Optional
 
 from sqlalchemy.orm import Session
 
-from src.database.models import Employee, AvailabilityRule
+from src.database.models import Employee, AvailabilityRule, OvertimeEntry
 from src.domain.enums import RuleType, RuleScope, ShiftType
 
 
@@ -124,3 +124,29 @@ class EmployeeRepository:
             and r.specific_date.year == year
             and r.specific_date.month == month
         ]
+
+    # ------------------------------------------------------------------
+    # OvertimeEntry CRUD
+    # ------------------------------------------------------------------
+
+    def add_overtime_entry(self, entry: OvertimeEntry) -> OvertimeEntry:
+        self.session.add(entry)
+        self.session.flush()
+        return entry
+
+    def get_overtime_entries(self, employee_id: int) -> list[OvertimeEntry]:
+        return (
+            self.session.query(OvertimeEntry)
+            .filter_by(employee_id=employee_id)
+            .order_by(OvertimeEntry.entry_date)
+            .all()
+        )
+
+    def delete_overtime_entry(self, entry: OvertimeEntry) -> None:
+        self.session.delete(entry)
+        self.session.flush()
+
+    def get_overtime_total(self, employee_id: int) -> float:
+        """Gibt die Summe aller manuellen Überstunden-Einträge zurück."""
+        entries = self.get_overtime_entries(employee_id)
+        return sum(e.hours for e in entries)

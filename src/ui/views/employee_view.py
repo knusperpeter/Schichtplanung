@@ -25,7 +25,7 @@ from PySide6.QtWidgets import (
 )
 
 from src.database.connection import get_session
-from src.database.models import AvailabilityRule, Employee
+from src.database.models import AvailabilityRule, Employee, OvertimeEntry
 from src.domain.enums import RuleType, RuleScope, ShiftType, SkillLevel, ContractType
 from src.repositories.employee_repository import EmployeeRepository
 from src.ui.styles import SKILL_COLOR, SKILL_LABEL, CONTRACT_LABEL
@@ -253,6 +253,41 @@ class EmployeeView(QWidget):
         self._add_form.setVisible(False)
         rl.addWidget(self._add_form)
 
+        # ── Überstundenkonto ───────────────────────────────────────────
+        overtime_header = QHBoxLayout()
+        overtime_lbl = QLabel("Überstundenkonto")
+        overtime_lbl.setObjectName("section-title")
+        overtime_header.addWidget(overtime_lbl)
+        overtime_header.addStretch()
+        self._overtime_total_lbl = QLabel("Gesamt: 0,0 h")
+        self._overtime_total_lbl.setObjectName("info")
+        overtime_header.addWidget(self._overtime_total_lbl)
+        self._add_overtime_btn = QPushButton("＋  Eintrag")
+        self._add_overtime_btn.setObjectName("primary")
+        self._add_overtime_btn.setFixedWidth(110)
+        self._add_overtime_btn.clicked.connect(self._toggle_overtime_form)
+        overtime_header.addWidget(self._add_overtime_btn)
+        rl.addLayout(overtime_header)
+
+        self._overtime_table = QTableWidget()
+        self._overtime_table.setColumnCount(4)
+        self._overtime_table.setHorizontalHeaderLabels(["Datum", "Stunden", "Notiz", ""])
+        self._overtime_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self._overtime_table.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.Fixed)
+        self._overtime_table.setColumnWidth(3, 50)
+        self._overtime_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self._overtime_table.setSelectionMode(QTableWidget.SelectionMode.NoSelection)
+        self._overtime_table.verticalHeader().setVisible(False)
+        self._overtime_table.setShowGrid(False)
+        self._overtime_table.verticalHeader().setDefaultSectionSize(36)
+        self._overtime_table.verticalHeader().setMinimumSectionSize(36)
+        self._overtime_table.setMaximumHeight(180)
+        rl.addWidget(self._overtime_table)
+
+        self._overtime_form = self._build_overtime_form()
+        self._overtime_form.setVisible(False)
+        rl.addWidget(self._overtime_form)
+
         splitter.addWidget(right)
         splitter.setSizes([300, 700])
         root.addWidget(splitter, 1)
@@ -340,6 +375,48 @@ class EmployeeView(QWidget):
         self._on_scope_changed(0)
         return frame
 
+    def _build_overtime_form(self) -> QFrame:
+        """Formular zum Hinzufügen eines Überstunden-Eintrags."""
+        frame = QFrame()
+        frame.setObjectName("card")
+        layout = QHBoxLayout(frame)
+        layout.setContentsMargins(12, 8, 12, 8)
+        layout.setSpacing(10)
+
+        layout.addWidget(QLabel("Datum:"))
+        self._ot_date_edit = QDateEdit()
+        self._ot_date_edit.setCalendarPopup(True)
+        self._ot_date_edit.setDisplayFormat("dd.MM.yyyy")
+        today = date.today()
+        self._ot_date_edit.setDate(QDate(today.year, today.month, today.day))
+        self._ot_date_edit.setFixedWidth(130)
+        layout.addWidget(self._ot_date_edit)
+
+        layout.addWidget(QLabel("Stunden:"))
+        self._ot_hours_spin = QDoubleSpinBox()
+        self._ot_hours_spin.setRange(-999.0, 999.0)
+        self._ot_hours_spin.setDecimals(2)
+        self._ot_hours_spin.setSuffix(" h")
+        self._ot_hours_spin.setFixedWidth(110)
+        self._ot_hours_spin.setToolTip("Positiv = Überstunden, Negativ = Freizeitausgleich/Abzug")
+        layout.addWidget(self._ot_hours_spin)
+
+        layout.addWidget(QLabel("Notiz:"))
+        self._ot_note_edit = QLineEdit()
+        self._ot_note_edit.setPlaceholderText("Optional …")
+        layout.addWidget(self._ot_note_edit, 1)
+
+        save_btn = QPushButton("＋  Hinzufügen")
+        save_btn.setObjectName("primary")
+        save_btn.clicked.connect(self._add_overtime_entry)
+        layout.addWidget(save_btn)
+
+        cancel_btn = QPushButton("✕")
+        cancel_btn.clicked.connect(self._toggle_overtime_form)
+        layout.addWidget(cancel_btn)
+
+        return frame
+
     # ------------------------------------------------------------------
     # Datenladen / Anzeige
     # ------------------------------------------------------------------
@@ -369,6 +446,8 @@ class EmployeeView(QWidget):
             self._set_edit_mode(False)
         if self._profile_edit_mode:
             self._cancel_profile_edit()
+        if self._overtime_form.isVisible():
+            self._toggle_overtime_form()
         self._show_employee(self._employees[row])
 
     def _show_employee(self, emp) -> None:
@@ -393,6 +472,7 @@ class EmployeeView(QWidget):
         self._special_lbl.setText(", ".join(specials) if specials else "–")
 
         self._populate_rules_table(emp)
+        self._populate_overtime_table(emp.id)
 
     # ------------------------------------------------------------------
     # Profil bearbeiten
@@ -551,6 +631,114 @@ class EmployeeView(QWidget):
             cell_layout.addWidget(edit_btn, 1)
             cell_layout.addWidget(del_btn)
             self._rules_table.setCellWidget(row, 4, cell)
+
+    # ------------------------------------------------------------------
+    # Überstundenkonto
+    # ------------------------------------------------------------------
+
+    def _populate_overtime_table(self, employee_id: int) -> None:
+        with get_session() as session:
+            repo = EmployeeRepository(session)
+            entries = repo.get_overtime_entries(employee_id)
+            total = sum(e.hours for e in entries)
+            # Daten aus Session herauslösen
+            data = [(e.id, e.entry_date, e.hours, e.note) for e in entries]
+
+        color = "#166534" if total >= 0 else "#991B1B"
+        self._overtime_total_lbl.setText(
+            f'Gesamt: <b><span style="color:{color};">{total:+.2f} h</span></b>'
+        )
+
+        self._overtime_table.setRowCount(len(data))
+        for row, (entry_id, entry_date, hours, note) in enumerate(data):
+            date_item = QTableWidgetItem(entry_date.strftime("%d.%m.%Y"))
+            date_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self._overtime_table.setItem(row, 0, date_item)
+
+            hours_color = "#166534" if hours >= 0 else "#991B1B"
+            hours_item = QTableWidgetItem(f"{hours:+.2f} h")
+            hours_item.setForeground(QBrush(QColor(hours_color)))
+            hours_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self._overtime_table.setItem(row, 1, hours_item)
+
+            note_item = QTableWidgetItem(note or "")
+            note_item.setToolTip(note or "")
+            self._overtime_table.setItem(row, 2, note_item)
+
+            del_btn = QPushButton("✕")
+            del_btn.setStyleSheet(
+                "QPushButton { background: #B91C1C; color: #FAFAFA; border: none;"
+                " border-radius: 4px; font-size: 11px; padding: 0 6px; }"
+                "QPushButton:hover { background: #991B1B; }"
+            )
+            del_btn.clicked.connect(lambda _checked, eid=entry_id: self._delete_overtime_entry(eid))
+            cell = QWidget()
+            cell_layout = QHBoxLayout(cell)
+            cell_layout.setContentsMargins(4, 2, 4, 2)
+            cell_layout.addWidget(del_btn)
+            self._overtime_table.setCellWidget(row, 3, cell)
+
+    def _toggle_overtime_form(self) -> None:
+        visible = not self._overtime_form.isVisible()
+        self._overtime_form.setVisible(visible)
+        if visible:
+            self._add_overtime_btn.setText("✕  Schließen")
+            self._ot_hours_spin.setValue(0.0)
+            self._ot_note_edit.clear()
+        else:
+            self._add_overtime_btn.setText("＋  Eintrag")
+
+    def _add_overtime_entry(self) -> None:
+        row = self._list.currentRow()
+        if row < 0 or row >= len(self._employees):
+            return
+        emp = self._employees[row]
+
+        qd = self._ot_date_edit.date()
+        entry_date = date(qd.year(), qd.month(), qd.day())
+        hours = self._ot_hours_spin.value()
+        if hours == 0.0:
+            QMessageBox.warning(self, "Ungültig", "Bitte eine Stundenzahl (≠ 0) eingeben.")
+            return
+        note = self._ot_note_edit.text().strip() or None
+
+        try:
+            with get_session() as session:
+                entry = OvertimeEntry(
+                    employee_id=emp.id,
+                    entry_date=entry_date,
+                    hours=hours,
+                    note=note,
+                )
+                EmployeeRepository(session).add_overtime_entry(entry)
+        except Exception as exc:
+            QMessageBox.warning(self, "Fehler", f"Eintrag konnte nicht gespeichert werden:\n{exc}")
+            return
+
+        self._toggle_overtime_form()
+        self._populate_overtime_table(emp.id)
+
+    def _delete_overtime_entry(self, entry_id: int) -> None:
+        confirm = QMessageBox.question(
+            self, "Eintrag entfernen",
+            "Diesen Überstunden-Eintrag wirklich entfernen?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+        )
+        if confirm != QMessageBox.StandardButton.Yes:
+            return
+        row = self._list.currentRow()
+        if row < 0 or row >= len(self._employees):
+            return
+        emp = self._employees[row]
+        try:
+            with get_session() as session:
+                entry = session.get(OvertimeEntry, entry_id)
+                if entry:
+                    EmployeeRepository(session).delete_overtime_entry(entry)
+        except Exception as exc:
+            QMessageBox.warning(self, "Fehler", f"Eintrag konnte nicht gelöscht werden:\n{exc}")
+            return
+        self._populate_overtime_table(emp.id)
 
     # ------------------------------------------------------------------
     # Edit-Modus

@@ -9,6 +9,7 @@ Logik:
   - Keine Obergrenze; kein automatischer Reset; Jahresübertrag erlaubt
   - Jahresend-Warnung wenn Kumulativstand > 0 (Überstunden abbauen!)
 """
+import math
 from calendar import monthrange
 from collections import defaultdict
 from datetime import date
@@ -65,8 +66,13 @@ class HourBalanceTracker:
         start_date: date,
         end_date: date,
     ) -> int:
-        """Zielschichten für die Periode (gerundet)."""
-        return round(self.period_target_hours(employee, start_date, end_date) / HOURS_PER_SHIFT)
+        """
+        Zielschichten für die Periode.
+        Aufrunden statt kaufmännisch runden, damit der Solver nie unter
+        dem anteiligen Stundenziel plant (z. B. 9,21 → 10 statt 9).
+        Hard Constraint H4 (max 5/Woche) verhindert Überplanung.
+        """
+        return math.ceil(self.period_target_hours(employee, start_date, end_date) / HOURS_PER_SHIFT)
 
     # ------------------------------------------------------------------
     # Stundenkonten nach Planung aktualisieren
@@ -105,6 +111,14 @@ class HourBalanceTracker:
                 holidays = holiday_cache[year]
 
                 days_in_month = monthrange(year, month)[1]
+                daily_target = emp.target_hours_per_month / days_in_month
+
+                # Anteiliges Stundenziel für den tatsächlich geplanten Zeitraum
+                # (z. B. 14 von 31 Tagen → nur 14/31 des Monatsziels)
+                period_start_in_month = min(a.date for a in month_assignments)
+                period_end_in_month   = max(a.date for a in month_assignments)
+                period_days = (period_end_in_month - period_start_in_month).days + 1
+                period_target_hours = round(daily_target * period_days, 4)
 
                 # Tatsächlich geplante Schichtstunden
                 scheduled_hours = len(month_assignments) * HOURS_PER_SHIFT
@@ -117,7 +131,6 @@ class HourBalanceTracker:
                 )
 
                 # Urlaubsstunden: Urlaubstage zählen als tägliche Ø-Arbeitszeit
-                daily_target = emp.target_hours_per_month / days_in_month
                 vacation_days_this_month = [
                     rule.specific_date
                     for rule in emp.availability_rules
@@ -128,9 +141,9 @@ class HourBalanceTracker:
                 ]
                 vacation_hours = len(vacation_days_this_month) * daily_target
 
-                # Delta: (gearbeitet + Urlaub) – Ziel
+                # Delta: (gearbeitet + Urlaub) – anteiliges Periodenziel
                 balance_delta = round(
-                    (scheduled_hours + vacation_hours) - emp.target_hours_per_month,
+                    (scheduled_hours + vacation_hours) - period_target_hours,
                     2,
                 )
 
@@ -143,7 +156,7 @@ class HourBalanceTracker:
                     employee_id=emp.id,
                     year=year,
                     month=month,
-                    target_hours=emp.target_hours_per_month,
+                    target_hours=period_target_hours,
                     scheduled_hours=scheduled_hours,
                     holiday_bonus_hours=holiday_bonus,
                     vacation_hours=round(vacation_hours, 2),

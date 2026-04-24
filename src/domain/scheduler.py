@@ -27,6 +27,7 @@ Modellstruktur:
       S4  AVOID-Regeln (Benze: kein Sonntag)        (Gewicht 7)
       S5  Schichtblockwechsel ohne 2-Tage-Pause     (Gewicht 6)
       S6  FULLTIME_40: 6 aufeinanderfolgende Tage penalisieren (Norm: 5) (Gewicht 5)
+      S7  Nach Nachtschicht + Ruhetag: Früh/Zwischen am übernächsten Tag vermeiden (Gewicht 8)
 """
 import time
 from dataclasses import dataclass, field
@@ -383,6 +384,21 @@ class CPSATScheduler:
                         sum(works_day[e.id, d + i] for i in range(6)) - 5 <= streak6
                     )
                     objective_terms.append(5 * streak6)
+
+        # S7 – Nach Nachtschicht + Ruhetag: Früh/Zwischen am übernächsten Tag vermeiden.
+        # Muster: N an Tag d → (Ruhetag d+1 durch H2 erzwungen) → Früh/Zwischen an d+2 penalisieren.
+        # Spät ist erlaubt und bevorzugt, da es dem Mitarbeiter mehr Erholung lässt.
+        for e in employees:
+            for d in range(num_days - 2):
+                for s_morning in (ShiftType.EARLY, ShiftType.MIDDLE):
+                    nm = model.new_bool_var(f"s7_{e.id}_{d}_{s_morning.value}")
+                    model.add(nm <= works[e.id, d, ShiftType.NIGHT.value])
+                    model.add(nm <= works[e.id, d + 2, s_morning.value])
+                    model.add(
+                        nm >= works[e.id, d, ShiftType.NIGHT.value]
+                               + works[e.id, d + 2, s_morning.value] - 1
+                    )
+                    objective_terms.append(8 * nm)
 
         # Zielfunktion minimieren
         model.minimize(sum(objective_terms))

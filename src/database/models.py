@@ -32,6 +32,9 @@ class Employee(Base):
     shift_assignments: Mapped[list["ShiftAssignment"]] = relationship(
         back_populates="employee", lazy="select"
     )
+    overtime_entries: Mapped[list["OvertimeEntry"]] = relationship(
+        back_populates="employee", cascade="all, delete-orphan", lazy="select"
+    )
 
     def __repr__(self) -> str:
         return f"<Employee {self.name} ({self.skill_level}, {self.contract_type})>"
@@ -198,3 +201,20 @@ class VacationBalance(Base):
             f"<VacationBalance {self.employee_id} {self.year}: "
             f"{self.used_days}/{self.entitlement_days} Tage verbraucht>"
         )
+
+
+class OvertimeEntry(Base):
+    """Manueller Eintrag im Überstundenkonto eines Mitarbeiters (Plus- oder Minusstunden)."""
+    __tablename__ = "overtime_entries"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    employee_id: Mapped[int] = mapped_column(ForeignKey("employees.id"), nullable=False)
+    entry_date: Mapped[date] = mapped_column(Date, nullable=False)
+    # Positive Werte = Überstunden, negative Werte = Freizeitausgleich / Abzug
+    hours: Mapped[float] = mapped_column(Float, nullable=False)
+    note: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
+    employee: Mapped["Employee"] = relationship(back_populates="overtime_entries")
+
+    def __repr__(self) -> str:
+        return f"<OvertimeEntry {self.employee_id} {self.entry_date} {self.hours:+.2f}h>"
